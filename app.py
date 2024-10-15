@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
+from streamlit_autocomplete import st_autocomplete
 
 # Function to match labels dynamically and get values from the balance sheet
 def get_balance_sheet_value(balance_sheet, possible_labels):
@@ -200,14 +201,32 @@ def fetch_company_data(ticker):
 # Function to fetch historical stock data
 def fetch_historical_data(ticker):
     company = yf.Ticker(ticker)
-    historical_data = company.history(period='1y')  # Fetch last 1 year of historical data
+    historical_data = company.history(period='1y')
     return historical_data
 
-# Streamlit UI setup
-st.title('Investment Analysis Tool')
+# Function to fetch latest news articles
+def fetch_latest_news(ticker):
+    company = yf.Ticker(ticker)
+    news_data = company.news
+    news_articles = []
 
-# Text input for ticker symbol
-ticker = st.text_input('Enter Ticker Symbol')
+    for article in news_data[:5]:  # Limit to the latest 5 articles
+        news_articles.append({
+            'title': article['title'],
+            'link': article['link'],
+            'providerPublishTime': article['providerPublishTime']
+        })
+
+    return news_articles
+
+# Streamlit UI
+st.title("Stock Market Analysis")
+st.write("Enter a stock ticker symbol to get started!")
+
+# Text input for ticker symbol with autocomplete
+ticker = st_autocomplete('Enter Ticker Symbol', 
+                          options=fetch_stock_suggestions(),  # Function to fetch suggestions
+                          placeholder='Type a stock ticker...')
 
 # Button to fetch data
 if st.button('Fetch Data'):
@@ -221,7 +240,7 @@ if st.button('Fetch Data'):
             st.error("No data found for the ticker symbol.")
 
 # Tabs for displaying different data
-tab1, tab2, tab3 = st.tabs(["Current Analysis", "Historical Data", "Company Overview"])
+tab1, tab2, tab3, tab4 = st.tabs(["Current Analysis", "Historical Data", "Company Overview", "Latest News"])
 
 # Current Analysis Tab
 with tab1:
@@ -294,3 +313,46 @@ with tab3:
 
     else:
         st.write("No data found for the ticker symbol.")
+
+# Latest News Tab
+with tab4:
+    if ticker:
+        news_data = fetch_latest_news(ticker)
+        if news_data:
+            st.subheader(f"Latest News for {ticker}")
+            for article in news_data:
+                st.write(f"**{article['title']}**")
+                st.write(f"[Read more]({article['link']})")
+                st.write(f"*Published on: {article['providerPublishTime']}*")
+                st.write("---")
+        else:
+            st.write("No news articles found for the ticker symbol.")
+    else:
+        st.write("Please enter a ticker symbol to see the latest news.")
+
+# Function to fetch stock suggestions (dummy example)
+def fetch_stock_suggestions():
+    # This function should ideally return a list of available stock ticker symbols
+    # For now, we'll just return a static list as an example
+    return [
+        "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "HINDUNILVR.NS",
+        "ICICIBANK.NS", "LT.NS", "SBIN.NS", "BHARTIARTL.NS", "KOTAKBANK.NS",
+        "HDFC.NS", "ONGC.NS", "WIPRO.NS", "ITC.NS", "ASIANPAINT.NS",
+        "ULTRACEMCO.NS", "HINDALCO.NS", "TATAMOTORS.NS", "MARUTI.NS", "TECHM.NS",
+        "BAJFINANCE.NS", "BHEL.NS", "BANKBARODA.NS", "TATASTEEL.NS", "GRASIM.NS",
+        "M&M.NS", "CIPLA.NS", "JSWSTEEL.NS", "RECLTD.NS", "DIVISLAB.NS",
+        "ADANIGREEN.NS", "HINDPETRO.NS", "INDUSINDBK.NS", "TATAPOWER.NS", "LTI.NS",
+        "PIDILITE.NS", "HAVELLS.NS", "NESTLEIND.NS", "SBILIFE.NS", "COLPAL.NS",
+        "TATACONSUMER.NS", "MINDTREE.NS", "GAIL.NS", "BERGEPAINT.NS", "ICICIGI.NS",
+        "HDFCLIFE.NS", "MARICO.NS", "BOSCHLTD.NS", "ABB.NS", "SAIL.NS",
+        "PVR.NS", "SIEMENS.NS", "DLF.NS", "ACC.NS", "AMBUJACEM.NS",
+        "JINDALSTEL.NS", "AUBANK.NS", "ADANIPORTS.NS", "TATAMTRDVR.NS", "NTPC.NS",
+        "SRF.NS", "SHREECEM.NS", "MRF.NS", "JUBLFOOD.NS", "IPCALAB.NS",
+        "FORTIS.NS", "PFC.NS", "ICICIPRULI.NS", "BIOCON.NS", "KNRCON.NS",
+        "MRPL.NS", "SRTRANSFIN.NS", "MGL.NS", "ADANIGAS.NS", "YESBANK.NS",
+        "GMRINFRA.NS", "L&TFH.NS", "ADANIPOWER.NS", "HINDZINC.NS", "NAVINFLUOR.NS",
+        "SUNPHARMA.NS", "INDIGO.NS", "TATAELXSI.NS", "JSLHISAR.NS", "SYNGENE.NS",
+        "HINDCOPPER.NS", "BANKINDIA.NS", "BAJFINANCE.NS", "TORNTPOWER.NS", "DABUR.NS",
+        "SUDARSCHEM.NS", "SREINFRA.NS", "PNB.NS", "BANDHANBANK.NS", "CUMMINSIND.NS"
+    ]
+
