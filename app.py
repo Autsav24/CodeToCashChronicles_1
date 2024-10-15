@@ -276,13 +276,13 @@ with tab1:
         metrics_df = pd.DataFrame({
             'Metric': [
                 'Current Ratio', 
-                'Debt to Equity', 
-                'Investment Status', 
-                'EPS', 
-                'P/E Ratio', 
-                'ROE', 
-                'Net Profit Margin', 
-                'Dividend Yield'
+                'Debt to Equity (Borrowed money vs. owned funds)', 
+                'Investment Status (Buy, hold, or sell advice)', 
+                'EPS (Profit per share)', 
+                'P/E Ratio (Stock price vs. earnings)', 
+                'ROE (Profitability from shareholder investment)', 
+                'Net Profit Margin (Profit from sales percentage)', 
+                'Dividend Yield (Return from dividends paid)'
             ],
             'Value': [
                 data['Current Ratio'], 
