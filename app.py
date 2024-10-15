@@ -3,7 +3,6 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
-from streamlit_autocomplete import st_autocomplete
 
 # Function to match labels dynamically and get values from the balance sheet
 def get_balance_sheet_value(balance_sheet, possible_labels):
@@ -214,145 +213,33 @@ def fetch_latest_news(ticker):
         news_articles.append({
             'title': article['title'],
             'link': article['link'],
-            'providerPublishTime': article['providerPublishTime']
+            'providerPublishTime': article['providerPublishTime'],
         })
 
     return news_articles
 
-# Streamlit UI
-st.title("Stock Market Analysis")
-st.write("Enter a stock ticker symbol to get started!")
+# Streamlit app layout
+st.title('Stock Investment Analysis Tool')
 
-# Text input for ticker symbol with autocomplete
-ticker = st_autocomplete('Enter Ticker Symbol', 
-                          options=fetch_stock_suggestions(),  # Function to fetch suggestions
-                          placeholder='Type a stock ticker...')
+# User input for stock ticker
+ticker_input = st.text_input('Enter Stock Ticker', 'AAPL').upper()
 
-# Button to fetch data
-if st.button('Fetch Data'):
-    if ticker:
-        data = fetch_company_data(ticker)
-        if data:
-            # Store data in session state
-            st.session_state.data = data
-            st.success("Analysis completed!")
-        else:
-            st.error("No data found for the ticker symbol.")
+if ticker_input:
+    # Fetch data
+    company_data = fetch_company_data(ticker_input)
+    historical_data = fetch_historical_data(ticker_input)
+    news_articles = fetch_latest_news(ticker_input)
 
-# Tabs for displaying different data
-tab1, tab2, tab3, tab4 = st.tabs(["Current Analysis", "Historical Data", "Company Overview", "Latest News"])
+    # Display company data
+    st.subheader('Company Data')
+    st.write(company_data)
 
-# Current Analysis Tab
-with tab1:
-    if 'data' in st.session_state:
-        data = st.session_state.data
-        st.subheader(f"Results for {data['Company']}")
-        
-        # Create a horizontal table for financial metrics
-        metrics_df = pd.DataFrame({
-            'Metric': [
-                'Current Ratio', 
-                'Debt to Equity', 
-                'Investment Status', 
-                'EPS', 
-                'P/E Ratio', 
-                'ROE', 
-                'Net Profit Margin', 
-                'Dividend Yield'
-            ],
-            'Value': [
-                data['Current Ratio'], 
-                data['Debt to Equity'], 
-                data['Investment Status'], 
-                data['EPS'], 
-                data['P/E Ratio'], 
-                data['ROE'], 
-                data['Net Profit Margin'], 
-                data['Dividend Yield']
-            ]
-        })
+    # Plot historical price data
+    st.subheader('Historical Stock Prices')
+    st.line_chart(historical_data['Close'])
 
-        st.table(metrics_df)
-
-    else:
-        st.write("No data found for the ticker symbol.")
-
-# Historical Data Tab
-with tab2:
-    historical_data = fetch_historical_data(ticker)
-    if historical_data is not None and not historical_data.empty:
-        st.subheader(f"Historical Data for {ticker}")
-        st.line_chart(historical_data['Close'])
-        st.write(historical_data)
-    else:
-        st.write("No historical data found for the ticker symbol.")
-
-# Company Overview Tab
-with tab3:
-    if 'data' in st.session_state:
-        data = st.session_state.data
-        st.subheader(f"Company Overview for {data['Company']}")
-        
-        # Display company overview details
-        overview_df = pd.DataFrame({
-            'Detail': [
-                'Sector', 
-                'Industry', 
-                'Market Cap', 
-                'Description'
-            ],
-            'Value': [
-                data['Sector'], 
-                data['Industry'], 
-                f"${data['Market Cap']:,}" if data['Market Cap'] else "N/A", 
-                data['Description']
-            ]
-        })
-
-        st.table(overview_df)
-
-    else:
-        st.write("No data found for the ticker symbol.")
-
-# Latest News Tab
-with tab4:
-    if ticker:
-        news_data = fetch_latest_news(ticker)
-        if news_data:
-            st.subheader(f"Latest News for {ticker}")
-            for article in news_data:
-                st.write(f"**{article['title']}**")
-                st.write(f"[Read more]({article['link']})")
-                st.write(f"*Published on: {article['providerPublishTime']}*")
-                st.write("---")
-        else:
-            st.write("No news articles found for the ticker symbol.")
-    else:
-        st.write("Please enter a ticker symbol to see the latest news.")
-
-# Function to fetch stock suggestions (dummy example)
-def fetch_stock_suggestions():
-    # This function should ideally return a list of available stock ticker symbols
-    # For now, we'll just return a static list as an example
-    return [
-        "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "HINDUNILVR.NS",
-        "ICICIBANK.NS", "LT.NS", "SBIN.NS", "BHARTIARTL.NS", "KOTAKBANK.NS",
-        "HDFC.NS", "ONGC.NS", "WIPRO.NS", "ITC.NS", "ASIANPAINT.NS",
-        "ULTRACEMCO.NS", "HINDALCO.NS", "TATAMOTORS.NS", "MARUTI.NS", "TECHM.NS",
-        "BAJFINANCE.NS", "BHEL.NS", "BANKBARODA.NS", "TATASTEEL.NS", "GRASIM.NS",
-        "M&M.NS", "CIPLA.NS", "JSWSTEEL.NS", "RECLTD.NS", "DIVISLAB.NS",
-        "ADANIGREEN.NS", "HINDPETRO.NS", "INDUSINDBK.NS", "TATAPOWER.NS", "LTI.NS",
-        "PIDILITE.NS", "HAVELLS.NS", "NESTLEIND.NS", "SBILIFE.NS", "COLPAL.NS",
-        "TATACONSUMER.NS", "MINDTREE.NS", "GAIL.NS", "BERGEPAINT.NS", "ICICIGI.NS",
-        "HDFCLIFE.NS", "MARICO.NS", "BOSCHLTD.NS", "ABB.NS", "SAIL.NS",
-        "PVR.NS", "SIEMENS.NS", "DLF.NS", "ACC.NS", "AMBUJACEM.NS",
-        "JINDALSTEL.NS", "AUBANK.NS", "ADANIPORTS.NS", "TATAMTRDVR.NS", "NTPC.NS",
-        "SRF.NS", "SHREECEM.NS", "MRF.NS", "JUBLFOOD.NS", "IPCALAB.NS",
-        "FORTIS.NS", "PFC.NS", "ICICIPRULI.NS", "BIOCON.NS", "KNRCON.NS",
-        "MRPL.NS", "SRTRANSFIN.NS", "MGL.NS", "ADANIGAS.NS", "YESBANK.NS",
-        "GMRINFRA.NS", "L&TFH.NS", "ADANIPOWER.NS", "HINDZINC.NS", "NAVINFLUOR.NS",
-        "SUNPHARMA.NS", "INDIGO.NS", "TATAELXSI.NS", "JSLHISAR.NS", "SYNGENE.NS",
-        "HINDCOPPER.NS", "BANKINDIA.NS", "BAJFINANCE.NS", "TORNTPOWER.NS", "DABUR.NS",
-        "SUDARSCHEM.NS", "SREINFRA.NS", "PNB.NS", "BANDHANBANK.NS", "CUMMINSIND.NS"
-    ]
+    # Display news articles
+    st.subheader('Latest News Articles')
+    for article in news_articles:
+        st.write(f"[{article['title']}]({article['link']}) - {pd.to_datetime(article['providerPublishTime']).strftime('%Y-%m-%d')}")
 
