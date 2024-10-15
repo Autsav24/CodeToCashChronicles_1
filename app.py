@@ -1,6 +1,7 @@
 import os
 import yfinance as yf
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
 
@@ -141,72 +142,109 @@ def should_invest(
 
     normalized_score = score / total_weight
 
+    # Investment recommendation logic with reasoning
     if normalized_score >= 0.75:
-        return "Strong Buy"
+        return "Strong Buy: High confidence in investment potential."
     elif normalized_score >= 0.55:
-        return "Buy"
+        return "Buy: Good opportunity with solid metrics."
     elif normalized_score >= 0.35:
-        return "Hold"
+        return "Hold: Monitor the situation closely."
     else:
-        return "Sell"
+        return "Sell: Consider reallocating investments."
 
 # Function to fetch financial data and calculate key metrics
+@st.cache_data(ttl=600)  # Cache the data for 10 minutes
 def fetch_company_data(ticker):
-    company = yf.Ticker(ticker)
-    balance_sheet = company.balance_sheet
-    info = company.info
+    try:
+        company = yf.Ticker(ticker)
+        balance_sheet = company.balance_sheet
+        info = company.info
 
-    total_assets_labels = ['Total Assets']
-    total_liabilities_labels = ['Total Liabilities', 'Total Liabilities Net Minority Interest']
-    current_assets_labels = ['Total Current Assets']
-    current_liabilities_labels = ['Total Current Liabilities']
-    long_term_debt_labels = ['Long Term Debt', 'Long-Term Debt']
-    shareholder_equity_labels = ['Total Stockholder Equity', 'Shareholder Equity']
+        total_assets_labels = ['Total Assets']
+        total_liabilities_labels = ['Total Liabilities', 'Total Liabilities Net Minority Interest']
+        current_assets_labels = ['Total Current Assets']
+        current_liabilities_labels = ['Total Current Liabilities']
+        long_term_debt_labels = ['Long Term Debt', 'Long-Term Debt']
+        shareholder_equity_labels = ['Total Stockholder Equity', 'Shareholder Equity']
 
-    total_assets = get_balance_sheet_value(balance_sheet, total_assets_labels)
-    total_liabilities = get_balance_sheet_value(balance_sheet, total_liabilities_labels)
-    current_assets = get_balance_sheet_value(balance_sheet, current_assets_labels)
-    current_liabilities = get_balance_sheet_value(balance_sheet, current_liabilities_labels)
-    long_term_debt = get_balance_sheet_value(balance_sheet, long_term_debt_labels)
-    shareholder_equity = get_balance_sheet_value(balance_sheet, shareholder_equity_labels)
+        total_assets = get_balance_sheet_value(balance_sheet, total_assets_labels)
+        total_liabilities = get_balance_sheet_value(balance_sheet, total_liabilities_labels)
+        current_assets = get_balance_sheet_value(balance_sheet, current_assets_labels)
+        current_liabilities = get_balance_sheet_value(balance_sheet, current_liabilities_labels)
+        long_term_debt = get_balance_sheet_value(balance_sheet, long_term_debt_labels)
+        shareholder_equity = get_balance_sheet_value(balance_sheet, shareholder_equity_labels)
 
-    current_ratio = (current_assets / current_liabilities) if current_liabilities else None
-    debt_to_equity = (total_liabilities / shareholder_equity) if shareholder_equity else None
+        current_ratio = (current_assets / current_liabilities) if current_liabilities else None
+        debt_to_equity = (total_liabilities / shareholder_equity) if shareholder_equity else None
 
-    eps = info.get('trailingEps')
-    pe_ratio = info.get('forwardPE')
-    roe = info.get('returnOnEquity')
-    net_profit_margin = info.get('profitMargins')
-    dividend_yield = info.get('dividendYield')
+        eps = info.get('trailingEps')
+        pe_ratio = info.get('forwardPE')
+        roe = info.get('returnOnEquity')
+        net_profit_margin = info.get('profitMargins')
+        dividend_yield = info.get('dividendYield')
 
-    investment_status = should_invest(current_ratio, debt_to_equity, roe, pe_ratio, None, None, net_profit_margin, dividend_yield)
+        investment_status = should_invest(current_ratio, debt_to_equity, roe, pe_ratio, None, None, net_profit_margin, dividend_yield)
 
-    return {
-        'Company': info['longName'] if 'longName' in info else ticker,
-        'Current Ratio': current_ratio,
-        'Debt to Equity': debt_to_equity,
-        'Investment Status': investment_status,
-        'EPS': eps,
-        'P/E Ratio': pe_ratio,
-        'ROE': roe,
-        'Net Profit Margin': net_profit_margin,
-        'Dividend Yield': dividend_yield,
-        'Sector': info.get('sector'),
-        'Industry': info.get('industry'),
-        'Market Cap': info.get('marketCap'),
-        'Description': info.get('longBusinessSummary'),
-    }
+        return {
+            'Company': info['longName'] if 'longName' in info else ticker,
+            'Current Ratio': current_ratio,
+            'Debt to Equity': debt_to_equity,
+            'Investment Status': investment_status,
+            'EPS': eps,
+            'P/E Ratio': pe_ratio,
+            'ROE': roe,
+            'Net Profit Margin': net_profit_margin,
+            'Dividend Yield': dividend_yield,
+            'Sector': info.get('sector'),
+            'Industry': info.get('industry'),
+            'Market Cap': info.get('marketCap'),
+            'Description': info.get('longBusinessSummary'),
+        }
+    except Exception as e:
+        st.error(f"Error fetching data for {ticker}: {e}")
+        return None
 
 # Function to fetch historical stock data
+@st.cache_data(ttl=600)  # Cache the data for 10 minutes
 def fetch_historical_data(ticker):
-    company = yf.Ticker(ticker)
-    historical_data = company.history(period='1y')  # Fetch last 1 year of historical data
-    return historical_data
+    try:
+        company = yf.Ticker(ticker)
+        historical_data = company.history(period='1y')  # Fetch last 1 year of historical data
+        return historical_data
+    except Exception as e:
+        st.error(f"Error fetching historical data for {ticker}: {e}")
+        return None
+
+# Function to calculate technical indicators
+def calculate_technical_indicators(data):
+    # Moving Averages
+    data['SMA_20'] = data['Close'].rolling(window=20).mean()
+    data['SMA_50'] = data['Close'].rolling(window=50).mean()
+
+    # RSI
+    delta = data['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / loss
+    data['RSI'] = 100 - (100 / (1 + rs))
+
+    # MACD
+    data['EMA_12'] = data['Close'].ewm(span=12, adjust=False).mean()
+    data['EMA_26'] = data['Close'].ewm(span=26, adjust=False).mean()
+    data['MACD'] = data['EMA_12'] - data['EMA_26']
+    data['Signal_Line'] = data['MACD'].ewm(span=9, adjust=False).mean()
+
+    return data
 
 # Function to fetch latest news
+@st.cache_data(ttl=600)  # Cache the data for 10 minutes
 def fetch_latest_news(ticker):
-    news_data = yf.Ticker(ticker).news
-    return news_data
+    try:
+        news_data = yf.Ticker(ticker).news
+        return news_data
+    except Exception as e:
+        st.error(f"Error fetching news for {ticker}: {e}")
+        return []
 
 # Streamlit UI setup
 st.title('Investment Analysis Tool')
@@ -226,7 +264,7 @@ if st.button('Fetch Data'):
             st.error("No data found for the ticker symbol.")
 
 # Tabs for displaying different data
-tab1, tab2, tab3, tab4 = st.tabs(["Current Analysis", "Historical Data", "Company Overview", "Latest News"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Current Analysis", "Historical Data", "Company Overview", "Technical Analysis", "Latest News"])
 
 # Current Analysis Tab
 with tab1:
@@ -300,8 +338,46 @@ with tab3:
     else:
         st.write("No data found for the ticker symbol.")
 
-# Latest News Tab
+# Technical Analysis Tab
 with tab4:
+    historical_data = fetch_historical_data(ticker)
+    if historical_data is not None and not historical_data.empty:
+        historical_data = calculate_technical_indicators(historical_data)
+
+        # Plotting Moving Averages
+        st.subheader(f"Technical Analysis for {ticker}")
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.plot(historical_data['Close'], label='Close Price', color='blue')
+        ax.plot(historical_data['SMA_20'], label='20-Day SMA', color='orange')
+        ax.plot(historical_data['SMA_50'], label='50-Day SMA', color='green')
+        ax.set_title('Close Price and Moving Averages')
+        ax.legend()
+        st.pyplot(fig)
+
+        # Plotting RSI
+        st.subheader('Relative Strength Index (RSI)')
+        fig_rsi, ax_rsi = plt.subplots(figsize=(10, 5))
+        ax_rsi.plot(historical_data['RSI'], label='RSI', color='purple')
+        ax_rsi.axhline(70, linestyle='--', alpha=0.5, color='red')
+        ax_rsi.axhline(30, linestyle='--', alpha=0.5, color='green')
+        ax_rsi.set_title('Relative Strength Index')
+        ax_rsi.legend()
+        st.pyplot(fig_rsi)
+
+        # Plotting MACD
+        st.subheader('MACD')
+        fig_macd, ax_macd = plt.subplots(figsize=(10, 5))
+        ax_macd.plot(historical_data['MACD'], label='MACD', color='blue')
+        ax_macd.plot(historical_data['Signal_Line'], label='Signal Line', color='orange')
+        ax_macd.set_title('MACD and Signal Line')
+        ax_macd.legend()
+        st.pyplot(fig_macd)
+
+    else:
+        st.write("No historical data found for the ticker symbol.")
+
+# Latest News Tab
+with tab5:
     if ticker:
         news_data = fetch_latest_news(ticker)
         if news_data:
