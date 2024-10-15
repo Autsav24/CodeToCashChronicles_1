@@ -200,46 +200,97 @@ def fetch_company_data(ticker):
 # Function to fetch historical stock data
 def fetch_historical_data(ticker):
     company = yf.Ticker(ticker)
-    historical_data = company.history(period='1y')
+    historical_data = company.history(period='1y')  # Fetch last 1 year of historical data
     return historical_data
 
-# Function to fetch latest news articles
-def fetch_latest_news(ticker):
-    company = yf.Ticker(ticker)
-    news_data = company.news
-    news_articles = []
+# Streamlit UI setup
+st.title('Investment Analysis Tool')
 
-    for article in news_data[:5]:  # Limit to the latest 5 articles
-        news_articles.append({
-            'title': article['title'],
-            'link': article['link'],
-            'providerPublishTime': article['providerPublishTime'],
+# Text input for ticker symbol
+ticker = st.text_input('Enter Ticker Symbol')
+
+# Button to fetch data
+if st.button('Fetch Data'):
+    if ticker:
+        data = fetch_company_data(ticker)
+        if data:
+            # Store data in session state
+            st.session_state.data = data
+            st.success("Analysis completed!")
+        else:
+            st.error("No data found for the ticker symbol.")
+
+# Tabs for displaying different data
+tab1, tab2, tab3 = st.tabs(["Current Analysis", "Historical Data", "Company Overview"])
+
+# Current Analysis Tab
+with tab1:
+    if 'data' in st.session_state:
+        data = st.session_state.data
+        st.subheader(f"Results for {data['Company']}")
+        
+        # Create a horizontal table for financial metrics
+        metrics_df = pd.DataFrame({
+            'Metric': [
+                'Current Ratio', 
+                'Debt to Equity', 
+                'Investment Status', 
+                'EPS', 
+                'P/E Ratio', 
+                'ROE', 
+                'Net Profit Margin', 
+                'Dividend Yield'
+            ],
+            'Value': [
+                data['Current Ratio'], 
+                data['Debt to Equity'], 
+                data['Investment Status'], 
+                data['EPS'], 
+                data['P/E Ratio'], 
+                data['ROE'], 
+                data['Net Profit Margin'], 
+                data['Dividend Yield']
+            ]
         })
 
-    return news_articles
+        st.table(metrics_df)
 
-# Streamlit app layout
-st.title('Stock Investment Analysis Tool')
+    else:
+        st.write("No data found for the ticker symbol.")
 
-# User input for stock ticker
-ticker_input = st.text_input('Enter Stock Ticker', 'AAPL').upper()
+# Historical Data Tab
+with tab2:
+    historical_data = fetch_historical_data(ticker)
+    if historical_data is not None and not historical_data.empty:
+        st.subheader(f"Historical Data for {ticker}")
+        st.line_chart(historical_data['Close'])
+        st.write(historical_data)
+    else:
+        st.write("No historical data found for the ticker symbol.")
 
-if ticker_input:
-    # Fetch data
-    company_data = fetch_company_data(ticker_input)
-    historical_data = fetch_historical_data(ticker_input)
-    news_articles = fetch_latest_news(ticker_input)
+# Company Overview Tab
+with tab3:
+    if 'data' in st.session_state:
+        data = st.session_state.data
+        st.subheader(f"Company Overview for {data['Company']}")
+        
+        # Display company overview details
+        overview_df = pd.DataFrame({
+            'Detail': [
+                'Sector', 
+                'Industry', 
+                'Market Cap', 
+                'Description'
+            ],
+            'Value': [
+                data['Sector'], 
+                data['Industry'], 
+                f"${data['Market Cap']:,}" if data['Market Cap'] else "N/A", 
+                data['Description']
+            ]
+        })
 
-    # Display company data
-    st.subheader('Company Data')
-    st.write(company_data)
+        st.table(overview_df)
 
-    # Plot historical price data
-    st.subheader('Historical Stock Prices')
-    st.line_chart(historical_data['Close'])
-
-    # Display news articles
-    st.subheader('Latest News Articles')
-    for article in news_articles:
-        st.write(f"[{article['title']}]({article['link']}) - {pd.to_datetime(article['providerPublishTime']).strftime('%Y-%m-%d')}")
-
+    else:
+        st.write("No data found for the ticker symbol.")
