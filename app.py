@@ -203,6 +203,11 @@ def fetch_historical_data(ticker):
     historical_data = company.history(period='1y')  # Fetch last 1 year of historical data
     return historical_data
 
+# Function to fetch latest news
+def fetch_latest_news(ticker):
+    news_data = yf.Ticker(ticker).news
+    return news_data
+
 # Streamlit UI setup
 st.title('Investment Analysis Tool')
 
@@ -221,7 +226,7 @@ if st.button('Fetch Data'):
             st.error("No data found for the ticker symbol.")
 
 # Tabs for displaying different data
-tab1, tab2, tab3 = st.tabs(["Current Analysis", "Historical Data", "Company Overview"])
+tab1, tab2, tab3, tab4 = st.tabs(["Current Analysis", "Historical Data", "Company Overview", "Latest News"])
 
 # Current Analysis Tab
 with tab1:
@@ -294,3 +299,19 @@ with tab3:
 
     else:
         st.write("No data found for the ticker symbol.")
+
+# Latest News Tab
+with tab4:
+    if ticker:
+        news_data = fetch_latest_news(ticker)
+        if news_data:
+            st.subheader(f"Latest News for {ticker}")
+            for article in news_data:
+                st.write(f"**{article['title']}**")
+                st.write(f"[Read more]({article['link']})")
+                st.write(f"*Published on: {article['providerPublishTime']}*")
+                st.write("---")
+        else:
+            st.write("No news articles found for the ticker symbol.")
+    else:
+        st.write("Please enter a ticker symbol to see the latest news.")
