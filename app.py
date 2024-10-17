@@ -82,16 +82,16 @@ if st.button("Fetch Data"):
             # Fundamental Metrics tab
             with tabs[1]:
                 st.subheader("Fundamental Metrics")
-                st.write(f"**PE Ratio:** {data['PE Ratio']}")
-                st.write(f"**PB Ratio:** {data['PB Ratio']}")
-                st.write(f"**Sector PE:** {data['Sector PE']}")
-                st.write(f"**Sector PB:** {data['Sector PB']}")
-                st.write(f"**ROE:** {data['ROE']}")
-                st.write(f"**ROCE:** {data['ROCE']}")
-                st.write(f"**Promoter Holding (%):** {data['Promoter Holding (%)']}")
-                st.write(f"**Debt to Equity:** {data['Debt to Equity']}")
-                st.write(f"**Sales Growth:** {data['Sales Growth']}")
-                st.write(f"**EPS Growth:** {data['EPS Growth']}")
+                st.write(f"**PE Ratio:** {data['PE Ratio']} (High stock price valuation)")
+                st.write(f"**PB Ratio:** {data['PB Ratio']} (Expensive relative to assets)")
+                st.write(f"**Sector PE:** {data['Sector PE']} (Not available for comparison)")
+                st.write(f"**Sector PB:** {data['Sector PB']} (Not available for comparison)")
+                st.write(f"**ROE:** {data['ROE']} (Profitability from equity investment)")
+                st.write(f"**ROCE:** {data['ROCE']} (Efficiency in using capital)")
+                st.write(f"**Promoter Holding (%):** {data['Promoter Holding (%)']} (Significant promoter ownership)")
+                st.write(f"**Debt to Equity:** {data['Debt to Equity']} (Not available for comparison)")
+                st.write(f"**Sales Growth:** {data['Sales Growth']} (Strong sales increase)")
+                st.write(f"**EPS Growth:** {data['EPS Growth']} (Declining earnings per share)")
         else:
             st.error("Failed to fetch data. Please try again.")
     else:
