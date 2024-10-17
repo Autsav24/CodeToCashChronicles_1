@@ -69,22 +69,29 @@ if st.button("Fetch Data"):
         data = fetch_company_data(ticker.upper())
         
         if data:
-            st.subheader("Company Overview")
-            st.write(f"**Company:** {data['Company']}")
-            st.write(f"**Description:** {data['Description']}")
-            st.write(f"**Market Cap:** {data['Market Cap']}")
-            
-            st.subheader("Fundamental Metrics")
-            st.write(f"**PE Ratio:** {data['PE Ratio']}")
-            st.write(f"**PB Ratio:** {data['PB Ratio']}")
-            st.write(f"**Sector PE:** {data['Sector PE']}")
-            st.write(f"**Sector PB:** {data['Sector PB']}")
-            st.write(f"**ROE:** {data['ROE']}")
-            st.write(f"**ROCE:** {data['ROCE']}")
-            st.write(f"**Promoter Holding (%):** {data['Promoter Holding (%)']}")
-            st.write(f"**Debt to Equity:** {data['Debt to Equity']}")
-            st.write(f"**Sales Growth:** {data['Sales Growth']}")
-            st.write(f"**EPS Growth:** {data['EPS Growth']}")
+            # Create tabs
+            tabs = st.tabs(["Overview", "Fundamental Metrics"])
+
+            # Overview tab
+            with tabs[0]:
+                st.subheader("Company Overview")
+                st.write(f"**Company:** {data['Company']}")
+                st.write(f"**Description:** {data['Description']}")
+                st.write(f"**Market Cap:** {data['Market Cap']}")
+
+            # Fundamental Metrics tab
+            with tabs[1]:
+                st.subheader("Fundamental Metrics")
+                st.write(f"**PE Ratio:** {data['PE Ratio']}")
+                st.write(f"**PB Ratio:** {data['PB Ratio']}")
+                st.write(f"**Sector PE:** {data['Sector PE']}")
+                st.write(f"**Sector PB:** {data['Sector PB']}")
+                st.write(f"**ROE:** {data['ROE']}")
+                st.write(f"**ROCE:** {data['ROCE']}")
+                st.write(f"**Promoter Holding (%):** {data['Promoter Holding (%)']}")
+                st.write(f"**Debt to Equity:** {data['Debt to Equity']}")
+                st.write(f"**Sales Growth:** {data['Sales Growth']}")
+                st.write(f"**EPS Growth:** {data['EPS Growth']}")
         else:
             st.error("Failed to fetch data. Please try again.")
     else:
