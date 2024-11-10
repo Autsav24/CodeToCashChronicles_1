@@ -127,52 +127,103 @@ def display_metric_explanation(metric_name):
     }
     return explanations.get(metric_name, "No explanation available.")
 
-# Fetch and display data if ticker is provided
-if ticker_input:
-    company_data = fetch_company_data(ticker_input)
+# Custom CSS to enhance visuals
+st.markdown("""
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #343a40;
+            font-family: 'Arial', sans-serif;
+        }
 
-    if company_data:
-        # **Company Overview** Section
-        st.subheader("Company Overview")
-        st.markdown(f"<h3>{company_data['Company']}</h3>", unsafe_allow_html=True)
-        st.markdown(f"<b>{company_data['Description']}</b>", unsafe_allow_html=True)
-        st.write(f"**Sector**: <span style='color:#3498db;'>{company_data['Sector']}</span>")
-        st.write(f"**Industry**: <span style='color:#3498db;'>{company_data['Industry']}</span>")
-        st.write(f"**Market Cap**: <span style='color:#2ecc71;'>₹{company_data['Market Cap']} Crores</span>")
+        .section-header {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
 
-        # **Fundamentals** Section
-        st.subheader("Fundamentals")
-        st.markdown(f"<h4>Price-to-Earnings (P/E) Ratio</h4><b>{company_data['P/E Ratio']}</b>", unsafe_allow_html=True)
-        st.markdown(display_metric_explanation("Price-to-Earnings (P/E) Ratio"), unsafe_allow_html=True)
-        
-        st.markdown(f"<h4>Earnings Per Share (EPS)</h4><b>₹{company_data['EPS']}</b>", unsafe_allow_html=True)
-        st.markdown(display_metric_explanation("Earnings Per Share (EPS)"), unsafe_allow_html=True)
-        
-        st.markdown(f"<h4>Price-to-Book (P/B) Ratio</h4><b>{company_data['P/B Ratio']}</b>", unsafe_allow_html=True)
-        st.markdown(display_metric_explanation("Price-to-Book (P/B) Ratio"), unsafe_allow_html=True)
-        
-        st.markdown(f"<h4>Dividend Yield</h4><b>{company_data['Dividend Yield']}%</b>", unsafe_allow_html=True)
-        st.markdown(display_metric_explanation("Dividend Yield"), unsafe_allow_html=True)
-        
-        st.markdown(f"<h4>Return on Equity (ROE)</h4><b>{company_data['Return on Equity']}%</b>", unsafe_allow_html=True)
-        st.markdown(display_metric_explanation("Return on Equity (ROE)"), unsafe_allow_html=True)
+        .subheader {
+            color: #2980b9;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
 
-        # **Financials** Section
-        st.subheader("Financials")
-        st.write(f"**Total Assets**: ₹{company_data['Total Assets']} Crores")
-        st.write(display_metric_explanation("Total Assets"))
-        
-        st.write(f"**Total Liabilities**: ₹{company_data['Total Liabilities']} Crores")
-        st.write(display_metric_explanation("Total Liabilities"))
-        
-        st.write(f"**Current Assets**: ₹{company_data['Current Assets']} Crores")
-        st.write(display_metric_explanation("Current Assets"))
-        
-        st.write(f"**Current Liabilities**: ₹{company_data['Current Liabilities']} Crores")
-        st.write(display_metric_explanation("Current Liabilities"))
-        
-        st.write(f"**Long Term Debt**: ₹{company_data['Long Term Debt']} Crores")
-        st.write(display_metric_explanation("Long Term Debt"))
-        
-        st.write(f"**Shareholder Equity**: ₹{company_data['Shareholder Equity']} Crores")
-        st.write(display_metric_explanation("Shareholder Equity"))
+        .metric-value {
+            color: #e74c3c;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .metric-explanation {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .metric-container {
+            margin-bottom: 30px;
+        }
+
+        .blue-text {
+            color: #3498db;
+        }
+
+        .green-text {
+            color: #2ecc71;
+        }
+
+        .hover-effect:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .animated-section {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Fetch and display data if ticker is valid
+company_data = fetch_company_data(ticker_input)
+if company_data:
+    # Company Overview Section
+    st.subheader("**Company Overview**")
+    st.write(f"<h4>Sector: <span class='blue-text'>{company_data['Sector']}</span></h4>", unsafe_allow_html=True)
+    st.write(f"<h4>Industry: <span class='blue-text'>{company_data['Industry']}</span></h4>", unsafe_allow_html=True)
+    st.write(f"<h4>Market Cap: <span class='green-text'>₹{company_data['Market Cap']:.2f} Crores</span></h4>", unsafe_allow_html=True)
+    st.write(f"<p>{company_data['Description']}</p>", unsafe_allow_html=True)
+
+    # Fundamentals Section
+    st.subheader("**Fundamentals**")
+    st.write(f"<h4>P/E Ratio: <span class='blue-text'>{company_data['P/E Ratio']}</span></h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Price-to-Earnings (P/E) Ratio"), unsafe_allow_html=True)
+    st.write(f"<h4>EPS: <span class='blue-text'>{company_data['EPS']}</span></h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Earnings Per Share (EPS)"), unsafe_allow_html=True)
+
+    # Financials Section
+    st.subheader("**Financials**")
+    st.write(f"<h4>Total Assets: ₹{company_data['Total Assets']:.2f} Crores</h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Total Assets"), unsafe_allow_html=True)
+    st.write(f"<h4>Total Liabilities: ₹{company_data['Total Liabilities']:.2f} Crores</h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Total Liabilities"), unsafe_allow_html=True)
+    st.write(f"<h4>Current Assets: ₹{company_data['Current Assets']:.2f} Crores</h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Current Assets"), unsafe_allow_html=True)
+
+    st.write(f"<h4>Current Liabilities: ₹{company_data['Current Liabilities']:.2f} Crores</h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Current Liabilities"), unsafe_allow_html=True)
+
+    st.write(f"<h4>Long Term Debt: ₹{company_data['Long Term Debt']:.2f} Crores</h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Long Term Debt"), unsafe_allow_html=True)
+
+    st.write(f"<h4>Shareholder Equity: ₹{company_data['Shareholder Equity']:.2f} Crores</h4>", unsafe_allow_html=True)
+    st.write(display_metric_explanation("Shareholder Equity"), unsafe_allow_html=True)
