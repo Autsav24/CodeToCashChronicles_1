@@ -7,6 +7,10 @@ def fetch_company_data(ticker):
         company = yf.Ticker(ticker)
         info = company.info
         balance_sheet = company.balance_sheet
+        income_statement = company.income_statement
+        cash_flow = company.cashflow
+        calendar = company.calendar
+        sec_filings = company.sec_filings
 
         # Financial Metrics
         total_assets = balance_sheet.loc['Total Assets'][0] if 'Total Assets' in balance_sheet.index else None
@@ -42,7 +46,15 @@ def fetch_company_data(ticker):
             'Current Assets': current_assets,
             'Current Liabilities': current_liabilities,
             'Long Term Debt': long_term_debt,
-            'Shareholder Equity': shareholder_equity
+            'Shareholder Equity': shareholder_equity,
+            'Calendar': calendar,
+            'SEC Filings': sec_filings,
+            'Income Statement': income_statement,
+            'Quarterly Income Statement': company.quarterly_income_stmt,
+            'Balance Sheet': balance_sheet,
+            'Quarterly Balance Sheet': company.quarterly_balance_sheet,
+            'Cash Flow': cash_flow,
+            'Quarterly Cash Flow': company.quarterly_cashflow
         }
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
@@ -77,12 +89,10 @@ def fetch_major_holders(ticker):
         company = yf.Ticker(ticker)
         major_holders = company.major_holders
         institutional_holders = company.institutional_holders
-        mutualfund_holders = company.mutualfund_holders
 
         return {
             'Major Holders': major_holders,
-            'Institutional Holders': institutional_holders,
-            'Mutual Fund Holders': mutualfund_holders
+            'Institutional Holders': institutional_holders
         }
     except Exception as e:
         st.error(f"Error fetching holders data for {ticker}: {e}")
@@ -104,12 +114,6 @@ def display_major_holders(holders_data):
             st.write(holders_data['Institutional Holders'])
         else:
             st.write("**Institutional Holders:** Data not available")
-        
-        if holders_data['Mutual Fund Holders'] is not None:
-            st.write("**Mutual Fund Holders:**")
-            st.write(holders_data['Mutual Fund Holders'])
-        else:
-            st.write("**Mutual Fund Holders:** Data not available")
     else:
         st.write("No data available for holders.")
 
@@ -117,7 +121,7 @@ def display_major_holders(holders_data):
 st.title('**Fundamental Analysis Tool**')
 
 st.sidebar.title("Options")
-ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").upper()
+ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="MSFT").upper()
 
 if ticker_input:
     company_data = fetch_company_data(ticker_input)
@@ -175,3 +179,24 @@ if ticker_input:
 
         # Major Holders Information Section
         display_major_holders(holders_data)
+
+        # Additional Financial Data (Income Statement, Cash Flow, etc.)
+        st.subheader("**Financial Statements**")
+        
+        st.write("**Income Statement**:")
+        st.write(company_data['Income Statement'])
+        
+        st.write("**Quarterly Income Statement**:")
+        st.write(company_data['Quarterly Income Statement'])
+        
+        st.write("**Balance Sheet**:")
+        st.write(company_data['Balance Sheet'])
+        
+        st.write("**Quarterly Balance Sheet**:")
+        st.write(company_data['Quarterly Balance Sheet'])
+        
+        st.write("**Cash Flow Statement**:")
+        st.write(company_data['Cash Flow'])
+        
+        st.write("**Quarterly Cash Flow Statement**:")
+        st.write(company_data['Quarterly Cash Flow'])
