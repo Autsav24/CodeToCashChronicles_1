@@ -89,7 +89,7 @@ def display_metric_explanation(metric_name):
             "<b>Why it matters:</b> Higher EPS means the company is more profitable per share, which is generally good for investors."
         ),
         "Price-to-Earnings (P/E) Ratio": (
-            "<b>What it is:</b> Shows how much you’re paying for $1 of the company’s earnings (profits).<br>"
+            "<b>What it is:</b> Shows how much you’re paying for ₹1 of the company’s earnings (profits).<br>"
             "<b>Why it matters:</b> A high P/E means the stock is expensive relative to its earnings, and a low P/E could mean it’s cheap."
         ),
         "Price-to-Book (P/B) Ratio": (
@@ -113,12 +113,12 @@ def display_metric_explanation(metric_name):
             "<b>Why it matters:</b> Positive FCF means the company is generating extra cash, which can be used to pay dividends or reinvest in growth."
         ),
         "Dividend Yield": (
-            "<b>What it is:</b> How much money the company pays you in dividends (if it does) for every dollar you invest in its stock.<br>"
+            "<b>What it is:</b> How much money the company pays you in dividends (if it does) for every rupee you invest in its stock.<br>"
             "<b>Why it matters:</b> A higher dividend yield is attractive for investors looking for regular income from their investment."
         ),
         "Gross Margin": (
             "<b>What it is:</b> The percentage of money the company keeps after covering the basic costs of making its products.<br>"
-            "<b>Why it matters:</b> A higher gross margin means the company keeps more of each dollar it earns, which is good for profitability."
+            "<b>Why it matters:</b> A higher gross margin means the company keeps more of each rupee it earns, which is good for profitability."
         ),
         "Operating Margin": (
             "<b>What it is:</b> The percentage of money the company keeps from its main business activities after paying for things like labor and materials.<br>"
