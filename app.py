@@ -9,22 +9,22 @@ def fetch_company_data(ticker):
         balance_sheet = company.balance_sheet
 
         # Financial Metrics
-        total_assets = balance_sheet.get('Total Assets')
-        total_liabilities = balance_sheet.get('Total Liabilities')
-        current_assets = balance_sheet.get('Total Current Assets')
-        current_liabilities = balance_sheet.get('Total Current Liabilities')
-        long_term_debt = balance_sheet.get('Long Term Debt')
-        shareholder_equity = balance_sheet.get('Total Stockholder Equity')
+        total_assets = balance_sheet.get('Total Assets', None)
+        total_liabilities = balance_sheet.get('Total Liabilities', None)
+        current_assets = balance_sheet.get('Total Current Assets', None)
+        current_liabilities = balance_sheet.get('Total Current Liabilities', None)
+        long_term_debt = balance_sheet.get('Long Term Debt', None)
+        shareholder_equity = balance_sheet.get('Total Stockholder Equity', None)
 
         # Key Data
-        eps = info.get('trailingEps')
-        pe_ratio = info.get('forwardPE')
-        roe = info.get('returnOnEquity')
-        net_profit_margin = info.get('profitMargins')
-        dividend_yield = info.get('dividendYield')
-        market_cap = info.get('marketCap')
-        sector = info.get('sector')
-        industry = info.get('industry')
+        eps = info.get('trailingEps', None)
+        pe_ratio = info.get('forwardPE', None)
+        roe = info.get('returnOnEquity', None)
+        net_profit_margin = info.get('profitMargins', None)
+        dividend_yield = info.get('dividendYield', None)
+        market_cap = info.get('marketCap', None)
+        sector = info.get('sector', None)
+        industry = info.get('industry', None)
         company_name = info.get('longName', ticker)
 
         return {
@@ -51,8 +51,8 @@ def fetch_company_data(ticker):
 # Function to display a metric with fallback if the data is None
 def display_metric_value(metric_name, value):
     if value is not None:
-        return f"<h4>{metric_name}: ₹{value:.2f} Crores</h4>"
-    return None  # Skip displaying if value is None
+        return f"<h4>{metric_name}: ₹{value/1e7:.2f} Crores</h4>"  # Convert to Crores
+    return f"<h4>{metric_name}: Data not available</h4>"
 
 # Metric Explanations
 def display_metric_explanation(metric_name):
@@ -107,31 +107,25 @@ if ticker_input:
         # Financials Section
         st.subheader("**Financials**")
         asset_display = display_metric_value("Total Assets", company_data.get('Total Assets'))
-        if asset_display:
-            st.markdown(asset_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Total Assets"))
+        st.markdown(asset_display, unsafe_allow_html=True)
+        st.write(display_metric_explanation("Total Assets"))
 
         liabilities_display = display_metric_value("Total Liabilities", company_data.get('Total Liabilities'))
-        if liabilities_display:
-            st.markdown(liabilities_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Total Liabilities"))
+        st.markdown(liabilities_display, unsafe_allow_html=True)
+        st.write(display_metric_explanation("Total Liabilities"))
 
         current_assets_display = display_metric_value("Current Assets", company_data.get('Current Assets'))
-        if current_assets_display:
-            st.markdown(current_assets_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Current Assets"))
+        st.markdown(current_assets_display, unsafe_allow_html=True)
+        st.write(display_metric_explanation("Current Assets"))
 
         current_liabilities_display = display_metric_value("Current Liabilities", company_data.get('Current Liabilities'))
-        if current_liabilities_display:
-            st.markdown(current_liabilities_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Current Liabilities"))
+        st.markdown(current_liabilities_display, unsafe_allow_html=True)
+        st.write(display_metric_explanation("Current Liabilities"))
 
         long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
-        if long_term_debt_display:
-            st.markdown(long_term_debt_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Long Term Debt"))
+        st.markdown(long_term_debt_display, unsafe_allow_html=True)
+        st.write(display_metric_explanation("Long Term Debt"))
 
         shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
-        if shareholder_equity_display:
-            st.markdown(shareholder_equity_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Shareholder Equity"))
+        st.markdown(shareholder_equity_display, unsafe_allow_html=True)
+        st.write(display_metric_explanation("Shareholder Equity"))
