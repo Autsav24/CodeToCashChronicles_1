@@ -72,7 +72,7 @@ def display_metric_explanation(metric_name):
     return explanations.get(metric_name, "No explanation available.")
 
 # Streamlit UI setup
-st.title('**Investment Analysis Tool**')
+st.title('**Fundamental Analysis Tool**')
 
 st.sidebar.title("Options")
 ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").upper()
@@ -90,39 +90,48 @@ if ticker_input:
         # Fundamentals Section
         st.subheader("**Fundamentals**")
         st.write(f"**EPS**: ₹{company_data['EPS']:.2f}")
+        st.write(display_metric_explanation("EPS"))
+        
         st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}")
+        st.write(display_metric_explanation("P/E Ratio"))
+        
         st.write(f"**ROE**: {company_data['ROE']*100:.2f}%")
+        st.write(display_metric_explanation("ROE"))
+        
         st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%")
+        st.write(display_metric_explanation("Net Profit Margin"))
+        
         st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%")
+        st.write(display_metric_explanation("Dividend Yield"))
 
         # Financials Section
         st.subheader("**Financials**")
         asset_display = display_metric_value("Total Assets", company_data.get('Total Assets'))
         if asset_display:
             st.markdown(asset_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Total Assets"), unsafe_allow_html=True)
+            st.write(display_metric_explanation("Total Assets"))
 
         liabilities_display = display_metric_value("Total Liabilities", company_data.get('Total Liabilities'))
         if liabilities_display:
             st.markdown(liabilities_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Total Liabilities"), unsafe_allow_html=True)
+            st.write(display_metric_explanation("Total Liabilities"))
 
         current_assets_display = display_metric_value("Current Assets", company_data.get('Current Assets'))
         if current_assets_display:
             st.markdown(current_assets_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Current Assets"), unsafe_allow_html=True)
+            st.write(display_metric_explanation("Current Assets"))
 
         current_liabilities_display = display_metric_value("Current Liabilities", company_data.get('Current Liabilities'))
         if current_liabilities_display:
             st.markdown(current_liabilities_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Current Liabilities"), unsafe_allow_html=True)
+            st.write(display_metric_explanation("Current Liabilities"))
 
         long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
         if long_term_debt_display:
             st.markdown(long_term_debt_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Long Term Debt"), unsafe_allow_html=True)
+            st.write(display_metric_explanation("Long Term Debt"))
 
         shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
         if shareholder_equity_display:
             st.markdown(shareholder_equity_display, unsafe_allow_html=True)
-            st.write(display_metric_explanation("Shareholder Equity"), unsafe_allow_html=True)
+            st.write(display_metric_explanation("Shareholder Equity"))
