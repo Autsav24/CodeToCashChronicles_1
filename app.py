@@ -1,25 +1,26 @@
 import streamlit as st
 import yfinance as yf
 
+# Set up the Streamlit page configuration
 st.set_page_config(page_title="Stock Fundamental Analysis", layout="wide")
 
-# Function to handle missing data and provide fallback
+# Function to handle missing data and provide a fallback value
 def safe_get_data(data, label, fallback="Data not available"):
     return data.get(label, fallback)
 
-# Function to fetch data
+# Function to fetch company data
 @st.cache_data(ttl=600)  # Cache data for 10 minutes
 def fetch_company_data(ticker):
     try:
         company = yf.Ticker(ticker)
         info = company.info
         
-        # Ensure data is valid
+        # Check if company data is available
         if 'longName' not in info:
             st.error(f"No data found for the ticker symbol: {ticker}. Please check the symbol and try again.")
             return None
         
-        # Essential data points (Company Essentials)
+        # Fetch company financial data (Company Essentials)
         market_cap = safe_get_data(info, 'marketCap')
         pe_ratio = safe_get_data(info, 'forwardPE')
         pb_ratio = safe_get_data(info, 'priceToBook')
@@ -35,33 +36,40 @@ def fetch_company_data(ticker):
         roce = safe_get_data(info, 'returnOnCapitalEmployed')
         profit_growth = safe_get_data(info, 'earningsQuarterlyGrowth')
 
-        # Prepare the data
+        # Handle the currency conversion and formatting (for values like market cap, cash, etc.)
+        def format_in_crores(value):
+            if value:
+                return f"₹ {value / 1e7:.2f} Cr"
+            return "N/A"
+
+        # Return the data as a dictionary
         return {
             'Company': info.get('longName', 'N/A'),
-            'Market Cap': market_cap,
+            'Market Cap': format_in_crores(market_cap),
             'PE Ratio': pe_ratio,
             'PB Ratio': pb_ratio,
             'Face Value': face_value,
-            'Dividend Yield': dividend_yield,
+            'Dividend Yield': f"{dividend_yield * 100} %" if dividend_yield != "N/A" else 'N/A',
             'Book Value': book_value,
-            'Cash': cash,
-            'Debt': debt,
+            'Cash': format_in_crores(cash),
+            'Debt': format_in_crores(debt),
             'Promoter Holding (%)': promoter_holding,
             'EPS': eps,
-            'Sales Growth': sales_growth,
-            'ROE': roe,
-            'ROCE': roce,
-            'Profit Growth': profit_growth,
+            'Sales Growth': f"{sales_growth * 100}%" if sales_growth != "N/A" else 'N/A',
+            'ROE': f"{roe}%" if roe != "N/A" else 'N/A',
+            'ROCE': f"{roce}%" if roce != "N/A" else 'N/A',
+            'Profit Growth': f"{profit_growth * 100}%" if profit_growth != "N/A" else 'N/A',
         }
 
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
         return None
 
-# Layout
+# Streamlit app layout
 st.title("Stock Fundamental Analysis")
 st.markdown("Enter a stock ticker symbol to fetch its fundamental data.")
 
+# Input for the stock ticker
 ticker = st.text_input("Ticker Symbol (e.g., TCS.NS, MSFT)")
 
 if st.button("Fetch Data"):
@@ -69,18 +77,18 @@ if st.button("Fetch Data"):
         data = fetch_company_data(ticker.upper())
         
         if data:
-            # Create tabs
-            tabs = st.tabs(["Company Essentials", "Key Metrics"])
+            # Create tabs for Company Essentials and Key Metrics
+            tabs = st.tabs(["Company Essentials", "Key Financial Metrics"])
 
             # Company Essentials tab
             with tabs[0]:
                 st.subheader("Company Overview")
-                st.write(f"**Company:** {data['Company']}")
+                st.write(f"**Company Name:** {data['Company']}")
                 st.write(f"**Market Cap:** {data['Market Cap']}")
                 st.write(f"**EPS (TTM):** {data['EPS']}")
                 st.write(f"**Promoter Holding (%):** {data['Promoter Holding (%)']}")
 
-            # Key Metrics tab
+            # Key Financial Metrics tab
             with tabs[1]:
                 st.subheader("Key Financial Metrics")
                 st.write(f"**PE Ratio:** {data['PE Ratio']}")
