@@ -84,62 +84,45 @@ ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").
 # Function to display explanations of financial metrics
 def display_metric_explanation(metric_name):
     explanations = {
-        "Total Assets": (
-            "What it is: Total Assets represent everything a company owns. "
-            "It includes current and non-current assets like cash, receivables, and property. "
-            "Why it matters: Total Assets give an indication of the scale of the company and its ability to generate revenue. "
-            "A larger asset base can lead to higher earnings potential."
+        "Earnings Per Share (EPS)": (
+            "<b>What it is:</b> How much profit a company makes for each share of stock.<br>"
+            "<b>Why it matters:</b> Higher EPS means the company is more profitable per share, which is generally good for investors."
         ),
-        "Total Liabilities": (
-            "What it is: Total Liabilities are the total debts a company owes. "
-            "It includes both current and long-term liabilities such as loans and payables. "
-            "Why it matters: Liabilities indicate the financial obligations a company must meet. "
-            "A high level of debt can increase financial risk but can also leverage growth if managed well."
+        "Price-to-Earnings (P/E) Ratio": (
+            "<b>What it is:</b> Shows how much you’re paying for $1 of the company’s earnings (profits).<br>"
+            "<b>Why it matters:</b> A high P/E means the stock is expensive relative to its earnings, and a low P/E could mean it’s cheap."
         ),
-        "Current Assets": (
-            "What it is: Current Assets are assets that are expected to be converted into cash within a year. "
-            "This includes cash, inventory, and accounts receivable. "
-            "Why it matters: The higher the current assets, the more liquid the company is, making it easier to meet short-term obligations."
+        "Price-to-Book (P/B) Ratio": (
+            "<b>What it is:</b> Compares the stock price to the company’s net worth (assets minus liabilities).<br>"
+            "<b>Why it matters:</b> A lower P/B ratio might mean the stock is undervalued compared to its actual worth."
         ),
-        "Current Liabilities": (
-            "What it is: Current Liabilities are the company's debts or obligations that are due within a year. "
-            "This includes short-term loans and accounts payable. "
-            "Why it matters: High current liabilities relative to current assets can indicate potential liquidity problems."
+        "Return on Equity (ROE)": (
+            "<b>What it is:</b> Shows how well the company is using the money from shareholders to make a profit.<br>"
+            "<b>Why it matters:</b> A higher ROE means the company is more efficient at making money for its investors."
         ),
-        "Long Term Debt": (
-            "What it is: Long Term Debt is the portion of the company's debt that is due after more than one year. "
-            "This includes bonds and long-term loans. "
-            "Why it matters: A high level of long-term debt could signal potential future financial strain but can also fund expansion."
+        "Debt-to-Equity (D/E) Ratio": (
+            "<b>What it is:</b> Tells you how much debt the company has compared to its own money (equity).<br>"
+            "<b>Why it matters:</b> A high D/E ratio means the company is more reliant on borrowing, which could be risky."
         ),
-        "Shareholder Equity": (
-            "What it is: Shareholder Equity represents the residual interest in the assets of the company after subtracting its liabilities. "
-            "It is also known as net assets or net worth. "
-            "Why it matters: A higher shareholder equity is generally a positive sign, showing the company has substantial backing from its shareholders."
+        "Current Ratio": (
+            "<b>What it is:</b> Measures if the company has enough short-term assets (like cash) to pay off its short-term debts.<br>"
+            "<b>Why it matters:</b> A ratio over 1 means the company can pay off its bills easily, while below 1 means it could struggle."
         ),
-        "P/E Ratio": (
-            "What it is: The Price-to-Earnings (P/E) ratio measures the price investors are willing to pay for a company's earnings. "
-            "It is calculated as the share price divided by earnings per share (EPS). "
-            "Why it matters: A higher P/E ratio could suggest that investors expect future growth, while a lower P/E may indicate undervaluation or poor growth prospects."
-        ),
-        "EPS": (
-            "What it is: Earnings Per Share (EPS) is the portion of a company's profit allocated to each outstanding share of common stock. "
-            "It is calculated as Net Income divided by the number of outstanding shares. "
-            "Why it matters: EPS is a key indicator of a company’s profitability. Higher EPS generally indicates better financial performance."
-        ),
-        "P/B Ratio": (
-            "What it is: The Price-to-Book (P/B) ratio compares a company’s market value to its book value. "
-            "It is calculated as the stock price divided by the book value per share. "
-            "Why it matters: A lower P/B ratio might indicate that a stock is undervalued, while a higher ratio could signal overvaluation."
+        "Free Cash Flow (FCF)": (
+            "<b>What it is:</b> The cash left over after the company spends on things like equipment and expansion.<br>"
+            "<b>Why it matters:</b> Positive FCF means the company is generating extra cash, which can be used to pay dividends or reinvest in growth."
         ),
         "Dividend Yield": (
-            "What it is: Dividend Yield is the annual dividend payment expressed as a percentage of the stock's price. "
-            "It is calculated by dividing the annual dividend per share by the stock price. "
-            "Why it matters: Dividend yield is important for income-focused investors. A high dividend yield can indicate a strong and consistent company."
+            "<b>What it is:</b> How much money the company pays you in dividends (if it does) for every dollar you invest in its stock.<br>"
+            "<b>Why it matters:</b> A higher dividend yield is attractive for investors looking for regular income from their investment."
         ),
-        "Return on Equity": (
-            "What it is: Return on Equity (ROE) measures a company’s ability to generate profits from its shareholders' equity. "
-            "It is calculated as Net Income divided by Shareholder Equity. "
-            "Why it matters: A higher ROE indicates efficient use of equity capital and can be a sign of a profitable company."
+        "Gross Margin": (
+            "<b>What it is:</b> The percentage of money the company keeps after covering the basic costs of making its products.<br>"
+            "<b>Why it matters:</b> A higher gross margin means the company keeps more of each dollar it earns, which is good for profitability."
+        ),
+        "Operating Margin": (
+            "<b>What it is:</b> The percentage of money the company keeps from its main business activities after paying for things like labor and materials.<br>"
+            "<b>Why it matters:</b> A high operating margin means the company is good at running its day-to-day business and making a profit."
         )
     }
     return explanations.get(metric_name, "No explanation available.")
@@ -151,28 +134,28 @@ if ticker_input:
     if company_data:
         # **Company Overview** Section
         st.subheader("Company Overview")
-        st.write(f"**Company Name**: {company_data['Company']}")
-        st.write(company_data['Description'])
-        st.write(f"**Sector**: {company_data['Sector']}")
-        st.write(f"**Industry**: {company_data['Industry']}")
-        st.write(f"**Market Cap**: ₹{company_data['Market Cap']} Crores")
+        st.markdown(f"<h3>{company_data['Company']}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<b>{company_data['Description']}</b>", unsafe_allow_html=True)
+        st.write(f"**Sector**: <span style='color:#3498db;'>{company_data['Sector']}</span>")
+        st.write(f"**Industry**: <span style='color:#3498db;'>{company_data['Industry']}</span>")
+        st.write(f"**Market Cap**: <span style='color:#2ecc71;'>₹{company_data['Market Cap']} Crores</span>")
 
         # **Fundamentals** Section
         st.subheader("Fundamentals")
-        st.write(f"**P/E Ratio**: {company_data['P/E Ratio']}")
-        st.write(display_metric_explanation("P/E Ratio"))
+        st.markdown(f"<h4>Price-to-Earnings (P/E) Ratio</h4><b>{company_data['P/E Ratio']}</b>", unsafe_allow_html=True)
+        st.markdown(display_metric_explanation("Price-to-Earnings (P/E) Ratio"), unsafe_allow_html=True)
         
-        st.write(f"**EPS**: ₹{company_data['EPS']}")
-        st.write(display_metric_explanation("EPS"))
+        st.markdown(f"<h4>Earnings Per Share (EPS)</h4><b>₹{company_data['EPS']}</b>", unsafe_allow_html=True)
+        st.markdown(display_metric_explanation("Earnings Per Share (EPS)"), unsafe_allow_html=True)
         
-        st.write(f"**P/B Ratio**: {company_data['P/B Ratio']}")
-        st.write(display_metric_explanation("P/B Ratio"))
+        st.markdown(f"<h4>Price-to-Book (P/B) Ratio</h4><b>{company_data['P/B Ratio']}</b>", unsafe_allow_html=True)
+        st.markdown(display_metric_explanation("Price-to-Book (P/B) Ratio"), unsafe_allow_html=True)
         
-        st.write(f"**Dividend Yield**: {company_data['Dividend Yield']}%")
-        st.write(display_metric_explanation("Dividend Yield"))
+        st.markdown(f"<h4>Dividend Yield</h4><b>{company_data['Dividend Yield']}%</b>", unsafe_allow_html=True)
+        st.markdown(display_metric_explanation("Dividend Yield"), unsafe_allow_html=True)
         
-        st.write(f"**Return on Equity**: {company_data['Return on Equity']}%")
-        st.write(display_metric_explanation("Return on Equity"))
+        st.markdown(f"<h4>Return on Equity (ROE)</h4><b>{company_data['Return on Equity']}%</b>", unsafe_allow_html=True)
+        st.markdown(display_metric_explanation("Return on Equity (ROE)"), unsafe_allow_html=True)
 
         # **Financials** Section
         st.subheader("Financials")
