@@ -156,7 +156,7 @@ def should_invest(
 
 # Function to fetch financial data and calculate key metrics
 @st.cache_data(ttl=600)  # Cache the data for 10 minutes
-def fetch_company_data(ticker):
+def fetch_company_data(ticker, investor_preference):
     try:
         company = yf.Ticker(ticker)
         balance_sheet = company.balance_sheet
@@ -185,14 +185,14 @@ def fetch_company_data(ticker):
         net_profit_margin = info.get('profitMargins')
         dividend_yield = info.get('dividendYield')
 
-        investment_status = should_invest(current_ratio, debt_to_equity, roe, pe_ratio, None, None, net_profit_margin, dividend_yield)
+        investment_status = should_invest(current_ratio, debt_to_equity, roe, pe_ratio, None, None, net_profit_margin, dividend_yield, investor_preference=investor_preference)
 
         return {
             'Company': info.get('longName', ticker),
             'Founded': info.get('yearFounded', 'N/A'),
             'Products': info.get('products', 'N/A'),
             'Description': info.get('longBusinessSummary', 'N/A'),
-            'Current Projects': info.get('currentProjects', 'N/A'),
+            'Current Projects': info.get('projectDetails', 'N/A'),
             'Sector': info.get('sector', 'N/A'),
             'Industry': info.get('industry', 'N/A'),
             'Market Cap': info.get('marketCap', 'N/A'),
@@ -203,7 +203,7 @@ def fetch_company_data(ticker):
             'ROE': roe,
             'Net Profit Margin': net_profit_margin,
             'Dividend Yield': dividend_yield,
-            'Status': investment_status
+            'Investment Status': investment_status
         }
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
@@ -217,7 +217,7 @@ ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").
 investor_preference = st.sidebar.selectbox("Select Investor Preference", ["balanced", "growth", "value", "dividend"])
 
 if ticker_input:
-    company_data = fetch_company_data(ticker_input)
+    company_data = fetch_company_data(ticker_input, investor_preference)
 
     if company_data:
         st.subheader(f"Company Overview: {company_data['Company']}")
