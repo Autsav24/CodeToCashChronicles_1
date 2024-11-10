@@ -51,7 +51,7 @@ def fetch_company_data(ticker):
 # Function to display a metric with fallback if the data is None
 def display_metric_value(metric_name, value):
     if value is not None:
-        return f"<h4>{metric_name}: ₹{value/1e7:.2f} Crores</h4>"  # Convert to Crores for monetary values
+        return f"<h4>{metric_name}: ₹{value:.2f}</h4>"  # Display the value without conversion
     return f"<h4>{metric_name}: Data not available</h4>"
 
 # Metric Explanations
@@ -85,63 +85,64 @@ if ticker_input:
         st.subheader(f"Company Overview: {company_data['Company']}")
         st.write(f"**Sector**: {company_data['Sector']}")
         st.write(f"**Industry**: {company_data['Industry']}")
-        
-        # Display Market Cap only in Crores
-        if company_data.get('Market Cap') is not None:
-            st.write(f"**Market Cap**: ₹{company_data['Market Cap']/1e7:.2f} Crores")
-        else:
-            st.write("**Market Cap**: Data not available")
+        st.write(f"**Market Cap**: ₹{company_data['Market Cap']:.2f}")
 
         # Fundamentals Section
         st.subheader("**Fundamentals**")
-        if company_data.get('EPS') is not None:
+        if company_data['EPS'] is not None:
             st.write(f"**EPS**: ₹{company_data['EPS']:.2f}")
         else:
-            st.write("**EPS**: Data not available")
+            st.write(f"**EPS**: Data not available")
         st.write(display_metric_explanation("EPS"))
         
-        if company_data.get('P/E Ratio') is not None:
+        if company_data['P/E Ratio'] is not None:
             st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}")
         else:
-            st.write("**P/E Ratio**: Data not available")
+            st.write(f"**P/E Ratio**: Data not available")
         st.write(display_metric_explanation("P/E Ratio"))
         
-        if company_data.get('ROE') is not None:
+        if company_data['ROE'] is not None:
             st.write(f"**ROE**: {company_data['ROE']*100:.2f}%")
         else:
-            st.write("**ROE**: Data not available")
+            st.write(f"**ROE**: Data not available")
         st.write(display_metric_explanation("ROE"))
         
-        if company_data.get('Net Profit Margin') is not None:
+        if company_data['Net Profit Margin'] is not None:
             st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%")
         else:
-            st.write("**Net Profit Margin**: Data not available")
+            st.write(f"**Net Profit Margin**: Data not available")
         st.write(display_metric_explanation("Net Profit Margin"))
         
-        if company_data.get('Dividend Yield') is not None:
+        if company_data['Dividend Yield'] is not None:
             st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%")
         else:
-            st.write("**Dividend Yield**: Data not available")
+            st.write(f"**Dividend Yield**: Data not available")
         st.write(display_metric_explanation("Dividend Yield"))
 
-        # Financials Section with conversion to Crores for amount fields
+        # Financials Section
         st.subheader("**Financials**")
-
+        
         # Display Financial Metrics with fallback
-        st.markdown(display_metric_value("Total Assets", company_data.get('Total Assets')), unsafe_allow_html=True)
+        asset_display = display_metric_value("Total Assets", company_data.get('Total Assets'))
+        st.markdown(asset_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Assets"))
 
-        st.markdown(display_metric_value("Total Liabilities", company_data.get('Total Liabilities')), unsafe_allow_html=True)
+        liabilities_display = display_metric_value("Total Liabilities", company_data.get('Total Liabilities'))
+        st.markdown(liabilities_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Liabilities"))
 
-        st.markdown(display_metric_value("Current Assets", company_data.get('Current Assets')), unsafe_allow_html=True)
+        current_assets_display = display_metric_value("Current Assets", company_data.get('Current Assets'))
+        st.markdown(current_assets_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Current Assets"))
 
-        st.markdown(display_metric_value("Current Liabilities", company_data.get('Current Liabilities')), unsafe_allow_html=True)
+        current_liabilities_display = display_metric_value("Current Liabilities", company_data.get('Current Liabilities'))
+        st.markdown(current_liabilities_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Current Liabilities"))
 
-        st.markdown(display_metric_value("Long Term Debt", company_data.get('Long Term Debt')), unsafe_allow_html=True)
+        long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
+        st.markdown(long_term_debt_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Long Term Debt"))
 
-        st.markdown(display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity')), unsafe_allow_html=True)
+        shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
+        st.markdown(shareholder_equity_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Shareholder Equity"))
