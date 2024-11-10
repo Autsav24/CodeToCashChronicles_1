@@ -27,6 +27,20 @@ def fetch_company_data(ticker):
         industry = info.get('industry', None)
         company_name = info.get('longName', ticker)
 
+        # Shareholder Information
+        major_holders = company.major_holders
+        institutional_holders = company.institutional_holders
+        mutualfund_holders = company.mutualfund_holders
+
+        # Analysts Data
+        analyst_price_targets = company.analyst_price_targets
+        earnings_estimate = company.earnings_estimate
+        revenue_estimate = company.revenue_estimate
+        earnings_history = company.earnings_history
+        eps_trend = company.eps_trend
+        eps_revisions = company.eps_revisions
+        growth_estimates = company.growth_estimates
+
         return {
             'Company': company_name,
             'Sector': sector,
@@ -42,7 +56,17 @@ def fetch_company_data(ticker):
             'Current Assets': current_assets,
             'Current Liabilities': current_liabilities,
             'Long Term Debt': long_term_debt,
-            'Shareholder Equity': shareholder_equity
+            'Shareholder Equity': shareholder_equity,
+            'Major Holders': major_holders,
+            'Institutional Holders': institutional_holders,
+            'Mutual Fund Holders': mutualfund_holders,
+            'Analyst Price Targets': analyst_price_targets,
+            'Earnings Estimate': earnings_estimate,
+            'Revenue Estimate': revenue_estimate,
+            'Earnings History': earnings_history,
+            'EPS Trend': eps_trend,
+            'EPS Revisions': eps_revisions,
+            'Growth Estimates': growth_estimates
         }
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
@@ -146,3 +170,21 @@ if ticker_input:
         shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
         st.markdown(shareholder_equity_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Shareholder Equity"))
+
+        # Shareholder Information Section
+        st.subheader("**Shareholder Information**")
+        st.write("**Major Holders**: ", company_data.get('Major Holders', 'Data not available'))
+        st.write("**Institutional Holders**: ", company_data.get('Institutional Holders', 'Data not available'))
+        st.write("**Mutual Fund Holders**: ", company_data.get('Mutual Fund Holders', 'Data not available'))
+
+        # Analysts Data Section
+        st.subheader("**Analysts Data**")
+
+        # Display Analyst Data (Price Targets, Earnings Estimates, etc.)
+        st.write("**Analyst Price Targets**: ", company_data.get('Analyst Price Targets', 'Data not available'))
+        st.write("**Earnings Estimate**: ", company_data.get('Earnings Estimate', 'Data not available'))
+        st.write("**Revenue Estimate**: ", company_data.get('Revenue Estimate', 'Data not available'))
+        st.write("**Earnings History**: ", company_data.get('Earnings History', 'Data not available'))
+        st.write("**EPS Trend**: ", company_data.get('EPS Trend', 'Data not available'))
+        st.write("**EPS Revisions**: ", company_data.get('EPS Revisions', 'Data not available'))
+        st.write("**Growth Estimates**: ", company_data.get('Growth Estimates', 'Data not available'))
