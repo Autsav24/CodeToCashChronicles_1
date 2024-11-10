@@ -54,22 +54,33 @@ def display_metric_value(metric_name, value):
         return f"<h4>{metric_name}: ₹{value/1e7:.2f} Crores</h4>"  # Convert to Crores
     return f"<h4>{metric_name}: Data not available</h4>"
 
-# Metric Explanations
-def display_metric_explanation(metric_name):
-    explanations = {
-        "Total Assets": "What it is: The total value of everything the company owns. Why it matters: Higher assets can mean more growth potential.",
-        "Total Liabilities": "What it is: The total debt the company owes. Why it matters: Less debt is often better for stability.",
-        "Current Assets": "What it is: Cash or assets that can quickly be converted into cash. Why it matters: Shows the company's short-term financial health.",
-        "Current Liabilities": "What it is: Debts that are due in the short-term. Why it matters: A high ratio to current assets may indicate liquidity problems.",
-        "Long Term Debt": "What it is: Debt that is due in more than one year. Why it matters: It indicates the company’s long-term financial health.",
-        "Shareholder Equity": "What it is: The company's net worth, calculated as assets minus liabilities. Why it matters: Positive equity is a sign of financial stability.",
-        "EPS": "What it is: Earnings Per Share – how much profit the company generates per share. Why it matters: A higher EPS indicates better profitability.",
-        "P/E Ratio": "What it is: Price-to-Earnings ratio – compares the price of the stock to its earnings. Why it matters: A high P/E ratio could indicate an overvalued stock.",
-        "ROE": "What it is: Return on Equity – measures profitability based on shareholder equity. Why it matters: A higher ROE is generally good for investors.",
-        "Net Profit Margin": "What it is: The percentage of revenue that becomes profit. Why it matters: A higher margin means the company is better at converting sales into actual profit.",
-        "Dividend Yield": "What it is: The annual dividend payment divided by the stock price. Why it matters: A higher yield is attractive to income-focused investors."
-    }
-    return explanations.get(metric_name, "No explanation available.")
+# Function to fetch and display analyst data (price targets, estimates, etc.)
+def fetch_analyst_data(ticker):
+    try:
+        company = yf.Ticker(ticker)
+
+        # Fetching various analyst data
+        analyst_price_targets = company.analyst_price_targets
+        earnings_estimate = company.earnings_estimate
+        revenue_estimate = company.revenue_estimate
+        earnings_history = company.earnings_history
+        eps_trend = company.eps_trend
+        eps_revisions = company.eps_revisions
+        growth_estimates = company.growth_estimates
+
+        # Return fetched data
+        return {
+            'Analyst Price Targets': analyst_price_targets,
+            'Earnings Estimate': earnings_estimate,
+            'Revenue Estimate': revenue_estimate,
+            'Earnings History': earnings_history,
+            'EPS Trend': eps_trend,
+            'EPS Revisions': eps_revisions,
+            'Growth Estimates': growth_estimates
+        }
+    except Exception as e:
+        st.error(f"Error fetching analyst data for {ticker}: {e}")
+        return None
 
 # Streamlit UI setup
 st.title('**Fundamental Analysis Tool**')
@@ -93,56 +104,87 @@ if ticker_input:
             st.write(f"**EPS**: ₹{company_data['EPS']:.2f}")
         else:
             st.write(f"**EPS**: Data not available")
-        st.write(display_metric_explanation("EPS"))
         
         if company_data['P/E Ratio'] is not None:
             st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}")
         else:
             st.write(f"**P/E Ratio**: Data not available")
-        st.write(display_metric_explanation("P/E Ratio"))
         
         if company_data['ROE'] is not None:
             st.write(f"**ROE**: {company_data['ROE']*100:.2f}%")
         else:
             st.write(f"**ROE**: Data not available")
-        st.write(display_metric_explanation("ROE"))
         
         if company_data['Net Profit Margin'] is not None:
             st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%")
         else:
             st.write(f"**Net Profit Margin**: Data not available")
-        st.write(display_metric_explanation("Net Profit Margin"))
         
         if company_data['Dividend Yield'] is not None:
             st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%")
         else:
             st.write(f"**Dividend Yield**: Data not available")
-        st.write(display_metric_explanation("Dividend Yield"))
 
         # Financials Section
         st.subheader("**Financials**")
-        
-        # Display Financial Metrics with fallback
-        asset_display = display_metric_value("Total Assets", company_data.get('Total Assets'))
-        st.markdown(asset_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Total Assets"))
+        st.markdown(display_metric_value("Total Assets", company_data.get('Total Assets')), unsafe_allow_html=True)
+        st.markdown(display_metric_value("Total Liabilities", company_data.get('Total Liabilities')), unsafe_allow_html=True)
+        st.markdown(display_metric_value("Current Assets", company_data.get('Current Assets')), unsafe_allow_html=True)
+        st.markdown(display_metric_value("Current Liabilities", company_data.get('Current Liabilities')), unsafe_allow_html=True)
+        st.markdown(display_metric_value("Long Term Debt", company_data.get('Long Term Debt')), unsafe_allow_html=True)
+        st.markdown(display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity')), unsafe_allow_html=True)
 
-        liabilities_display = display_metric_value("Total Liabilities", company_data.get('Total Liabilities'))
-        st.markdown(liabilities_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Total Liabilities"))
+        # Fetch and Display Analyst Data
+        analyst_data = fetch_analyst_data(ticker_input)
 
-        current_assets_display = display_metric_value("Current Assets", company_data.get('Current Assets'))
-        st.markdown(current_assets_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Current Assets"))
+        if analyst_data:
+            st.subheader("**Analyst Data**")
+            
+            # Display Analyst Price Targets
+            if analyst_data['Analyst Price Targets'] is not None:
+                st.write("**Analyst Price Targets**:")
+                st.write(analyst_data['Analyst Price Targets'])
+            else:
+                st.write("**Analyst Price Targets**: Data not available")
 
-        current_liabilities_display = display_metric_value("Current Liabilities", company_data.get('Current Liabilities'))
-        st.markdown(current_liabilities_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Current Liabilities"))
+            # Display Earnings Estimate
+            if analyst_data['Earnings Estimate'] is not None:
+                st.write("**Earnings Estimate**:")
+                st.write(analyst_data['Earnings Estimate'])
+            else:
+                st.write("**Earnings Estimate**: Data not available")
 
-        long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
-        st.markdown(long_term_debt_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Long Term Debt"))
+            # Display Revenue Estimate
+            if analyst_data['Revenue Estimate'] is not None:
+                st.write("**Revenue Estimate**:")
+                st.write(analyst_data['Revenue Estimate'])
+            else:
+                st.write("**Revenue Estimate**: Data not available")
 
-        shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
-        st.markdown(shareholder_equity_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Shareholder Equity"))
+            # Display Earnings History
+            if analyst_data['Earnings History'] is not None:
+                st.write("**Earnings History**:")
+                st.write(analyst_data['Earnings History'])
+            else:
+                st.write("**Earnings History**: Data not available")
+
+            # Display EPS Trend
+            if analyst_data['EPS Trend'] is not None:
+                st.write("**EPS Trend**:")
+                st.write(analyst_data['EPS Trend'])
+            else:
+                st.write("**EPS Trend**: Data not available")
+
+            # Display EPS Revisions
+            if analyst_data['EPS Revisions'] is not None:
+                st.write("**EPS Revisions**:")
+                st.write(analyst_data['EPS Revisions'])
+            else:
+                st.write("**EPS Revisions**: Data not available")
+
+            # Display Growth Estimates
+            if analyst_data['Growth Estimates'] is not None:
+                st.write("**Growth Estimates**:")
+                st.write(analyst_data['Growth Estimates'])
+            else:
+                st.write("**Growth Estimates**: Data not available")
