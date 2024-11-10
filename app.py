@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
+from PIL import Image
 
 # Function to match labels dynamically and get values from the balance sheet
 def get_balance_sheet_value(balance_sheet, possible_labels):
@@ -204,190 +205,30 @@ def fetch_company_data(ticker):
         st.error(f"Error fetching data for {ticker}: {e}")
         return None
 
-# Function to fetch historical stock data
-@st.cache_data(ttl=600)  # Cache the data for 10 minutes
-def fetch_historical_data(ticker):
-    try:
-        company = yf.Ticker(ticker)
-        historical_data = company.history(period='1y')  # Fetch last 1 year of historical data
-        return historical_data
-    except Exception as e:
-        st.error(f"Error fetching historical data for {ticker}: {e}")
-        return None
-
-# Function to calculate technical indicators
-def calculate_technical_indicators(data):
-    # Moving Averages
-    data['SMA_20'] = data['Close'].rolling(window=20).mean()
-    data['SMA_50'] = data['Close'].rolling(window=50).mean()
-
-    # RSI
-    delta = data['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs = gain / loss
-    data['RSI'] = 100 - (100 / (1 + rs))
-
-    # MACD
-    data['EMA_12'] = data['Close'].ewm(span=12, adjust=False).mean()
-    data['EMA_26'] = data['Close'].ewm(span=26, adjust=False).mean()
-    data['MACD'] = data['EMA_12'] - data['EMA_26']
-    data['Signal_Line'] = data['MACD'].ewm(span=9, adjust=False).mean()
-
-    return data
-
-# Function to fetch latest news
-@st.cache_data(ttl=600)  # Cache the data for 10 minutes
-def fetch_latest_news(ticker):
-    try:
-        news_data = yf.Ticker(ticker).news
-        return news_data
-    except Exception as e:
-        st.error(f"Error fetching news for {ticker}: {e}")
-        return []
-
 # Streamlit UI setup
-st.title('Investment Analysis Tool')
+st.title('**Investment Analysis Tool**')
 
-# Text input for ticker symbol
-ticker = st.text_input('Enter Ticker Symbol')
+st.sidebar.title("Options")
+ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="AAPL").upper()
+investor_preference = st.sidebar.selectbox("Select Investor Preference", ["balanced", "growth", "value", "dividend"])
 
-# Button to fetch data
-if st.button('Fetch Data'):
-    if ticker:
-        data = fetch_company_data(ticker)
-        if data:
-            # Store data in session state
-            st.session_state.data = data
-            st.success("Analysis completed!")
-        else:
-            st.error("No data found for the ticker symbol.")
+if ticker_input:
+    company_data = fetch_company_data(ticker_input)
 
-# Tabs for displaying different data
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Current Analysis", "Historical Data", "Company Overview", "Technical Analysis", "Latest News"])
-
-# Current Analysis Tab
-with tab1:
-    if 'data' in st.session_state:
-        data = st.session_state.data
-        st.subheader(f"Results for {data['Company']}")
+    if company_data:
+        st.subheader(f"Company Overview: {company_data['Company']}")
+        st.write(company_data['Description'])
+        st.write(f"**Sector**: {company_data['Sector']}")
+        st.write(f"**Industry**: {company_data['Industry']}")
+        st.write(f"**Market Cap**: {company_data['Market Cap']}")
         
-        # Create a horizontal table for financial metrics
-        metrics_df = pd.DataFrame({
-            'Metric': [
-                'Current Ratio', 
-                'Debt to Equity', 
-                'Investment Status', 
-                'EPS', 
-                'P/E Ratio', 
-                'ROE', 
-                'Net Profit Margin', 
-                'Dividend Yield'
-            ],
-            'Value': [
-                data['Current Ratio'], 
-                data['Debt to Equity'], 
-                data['Investment Status'], 
-                data['EPS'], 
-                data['P/E Ratio'], 
-                data['ROE'], 
-                data['Net Profit Margin'], 
-                data['Dividend Yield']
-            ]
-        })
-
-        st.table(metrics_df)
-
-    else:
-        st.write("No data found for the ticker symbol.")
-
-# Historical Data Tab
-with tab2:
-    historical_data = fetch_historical_data(ticker)
-    if historical_data is not None and not historical_data.empty:
-        st.subheader(f"Historical Data for {ticker}")
-        st.line_chart(historical_data['Close'])
-        st.write(historical_data)
-    else:
-        st.write("No historical data found for the ticker symbol.")
-
-# Company Overview Tab
-with tab3:
-    if 'data' in st.session_state:
-        data = st.session_state.data
-        st.subheader(f"Company Overview for {data['Company']}")
+        st.write(f"**Current Ratio**: {company_data['Current Ratio']}")
+        st.write(f"**Debt to Equity Ratio**: {company_data['Debt to Equity']}")
+        st.write(f"**EPS**: {company_data['EPS']}")
+        st.write(f"**P/E Ratio**: {company_data['P/E Ratio']}")
+        st.write(f"**ROE**: {company_data['ROE']}")
+        st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']}")
+        st.write(f"**Dividend Yield**: {company_data['Dividend Yield']}")
         
-        # Display company overview details
-        overview_df = pd.DataFrame({
-            'Detail': [
-                'Sector', 
-                'Industry', 
-                'Market Cap', 
-                'Description'
-            ],
-            'Value': [
-                data['Sector'], 
-                data['Industry'], 
-                f"${data['Market Cap']:,}" if data['Market Cap'] else "N/A", 
-                data['Description']
-            ]
-        })
-
-        st.table(overview_df)
-
-    else:
-        st.write("No data found for the ticker symbol.")
-
-# Technical Analysis Tab
-with tab4:
-    historical_data = fetch_historical_data(ticker)
-    if historical_data is not None and not historical_data.empty:
-        historical_data = calculate_technical_indicators(historical_data)
-
-        # Plotting Moving Averages
-        st.subheader(f"Technical Analysis for {ticker}")
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.plot(historical_data['Close'], label='Close Price', color='blue')
-        ax.plot(historical_data['SMA_20'], label='20-Day SMA', color='orange')
-        ax.plot(historical_data['SMA_50'], label='50-Day SMA', color='green')
-        ax.set_title('Close Price and Moving Averages')
-        ax.legend()
-        st.pyplot(fig)
-
-        # Plotting RSI
-        st.subheader('Relative Strength Index (RSI)')
-        fig_rsi, ax_rsi = plt.subplots(figsize=(10, 5))
-        ax_rsi.plot(historical_data['RSI'], label='RSI', color='purple')
-        ax_rsi.axhline(70, linestyle='--', alpha=0.5, color='red')
-        ax_rsi.axhline(30, linestyle='--', alpha=0.5, color='green')
-        ax_rsi.set_title('Relative Strength Index')
-        ax_rsi.legend()
-        st.pyplot(fig_rsi)
-
-        # Plotting MACD
-        st.subheader('MACD')
-        fig_macd, ax_macd = plt.subplots(figsize=(10, 5))
-        ax_macd.plot(historical_data['MACD'], label='MACD', color='blue')
-        ax_macd.plot(historical_data['Signal_Line'], label='Signal Line', color='orange')
-        ax_macd.set_title('MACD and Signal Line')
-        ax_macd.legend()
-        st.pyplot(fig_macd)
-
-    else:
-        st.write("No historical data found for the ticker symbol.")
-
-# Latest News Tab
-with tab5:
-    if ticker:
-        news_data = fetch_latest_news(ticker)
-        if news_data:
-            st.subheader(f"Latest News for {ticker}")
-            for article in news_data:
-                st.write(f"**{article['title']}**")
-                st.write(f"[Read more]({article['link']})")
-                st.write(f"*Published on: {article['providerPublishTime']}*")
-                st.write("---")
-        else:
-            st.write("No news articles found for the ticker symbol.")
-    else:
-        st.write("Please enter a ticker symbol to see the latest news.")
+        st.subheader("Investment Recommendation")
+        st.write(f"**Recommendation**: {company_data['Investment Status']}")
