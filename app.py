@@ -9,12 +9,12 @@ def fetch_company_data(ticker):
         balance_sheet = company.balance_sheet
 
         # Financial Metrics
-        total_assets = balance_sheet.get('Total Assets', None)
-        total_liabilities = balance_sheet.get('Total Liabilities', None)
-        current_assets = balance_sheet.get('Total Current Assets', None)
-        current_liabilities = balance_sheet.get('Total Current Liabilities', None)
-        long_term_debt = balance_sheet.get('Long Term Debt', None)
-        shareholder_equity = balance_sheet.get('Total Stockholder Equity', None)
+        total_assets = balance_sheet.loc['Total Assets'][0] if 'Total Assets' in balance_sheet.index else None
+        total_liabilities = balance_sheet.loc['Total Liabilities Net Minority Interest'][0] if 'Total Liabilities Net Minority Interest' in balance_sheet.index else None
+        current_assets = balance_sheet.loc['Total Current Assets'][0] if 'Total Current Assets' in balance_sheet.index else None
+        current_liabilities = balance_sheet.loc['Total Current Liabilities'][0] if 'Total Current Liabilities' in balance_sheet.index else None
+        long_term_debt = balance_sheet.loc['Long Term Debt'][0] if 'Long Term Debt' in balance_sheet.index else None
+        shareholder_equity = balance_sheet.loc['Total Stockholder Equity'][0] if 'Total Stockholder Equity' in balance_sheet.index else None
 
         # Key Data
         eps = info.get('trailingEps', None)
