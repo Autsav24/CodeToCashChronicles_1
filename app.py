@@ -9,12 +9,12 @@ def fetch_company_data(ticker):
         balance_sheet = company.balance_sheet
 
         # Financial Metrics
-        total_assets = balance_sheet.get('Total Assets', None)
-        total_liabilities = balance_sheet.get('Total Liabilities', None)
-        current_assets = balance_sheet.get('Total Current Assets', None)
-        current_liabilities = balance_sheet.get('Total Current Liabilities', None)
-        long_term_debt = balance_sheet.get('Long Term Debt', None)
-        shareholder_equity = balance_sheet.get('Total Stockholder Equity', None)
+        total_assets = balance_sheet.loc['Total Assets'][0] if 'Total Assets' in balance_sheet.index else None
+        total_liabilities = balance_sheet.loc['Total Liabilities Net Minority Interest'][0] if 'Total Liabilities Net Minority Interest' in balance_sheet.index else None
+        current_assets = balance_sheet.loc['Total Current Assets'][0] if 'Total Current Assets' in balance_sheet.index else None
+        current_liabilities = balance_sheet.loc['Total Current Liabilities'][0] if 'Total Current Liabilities' in balance_sheet.index else None
+        long_term_debt = balance_sheet.loc['Long Term Debt'][0] if 'Long Term Debt' in balance_sheet.index else None
+        shareholder_equity = balance_sheet.loc['Total Stockholder Equity'][0] if 'Total Stockholder Equity' in balance_sheet.index else None
 
         # Key Data
         eps = info.get('trailingEps', None)
@@ -51,7 +51,7 @@ def fetch_company_data(ticker):
 # Function to display a metric with fallback if the data is None
 def display_metric_value(metric_name, value):
     if value is not None:
-        return f"<h4>{metric_name}: ₹{value:.2f}</h4>"  # Display the value without conversion
+        return f"<h4>{metric_name}: ₹{value/1e7:.2f} Crores</h4>"  # Convert to Crores
     return f"<h4>{metric_name}: Data not available</h4>"
 
 # Metric Explanations
@@ -85,7 +85,7 @@ if ticker_input:
         st.subheader(f"Company Overview: {company_data['Company']}")
         st.write(f"**Sector**: {company_data['Sector']}")
         st.write(f"**Industry**: {company_data['Industry']}")
-        st.write(f"**Market Cap**: ₹{company_data['Market Cap']:.2f}")
+        st.write(f"**Market Cap**: ₹{company_data['Market Cap']/1e7:.2f} Crores")
 
         # Fundamentals Section
         st.subheader("**Fundamentals**")
