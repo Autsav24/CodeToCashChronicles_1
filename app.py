@@ -17,7 +17,7 @@ def fetch_company_data(ticker):
         splits = company.splits
         capital_gains = company.capital_gains
         shares_outstanding = company.get_shares_full(start="2022-01-01")
-
+        
         # Financials
         income_stmt = company.income_stmt
         quarterly_income_stmt = company.quarterly_income_stmt
@@ -27,12 +27,12 @@ def fetch_company_data(ticker):
         quarterly_cashflow = company.quarterly_cashflow
         
         # Holders and Transactions
-        major_holders = company.major_holders if 'major_holders' in dir(company) else None
-        institutional_holders = company.institutional_holders if 'institutional_holders' in dir(company) else None
-        mutualfund_holders = company.mutualfund_holders if 'mutualfund_holders' in dir(company) else None
-        insider_transactions = company.insider_transactions if 'insider_transactions' in dir(company) else None
-        insider_purchases = company.insider_purchases if 'insider_purchases' in dir(company) else None
-        insider_roster = company.insider_roster if 'insider_roster' in dir(company) else None
+        major_holders = company.major_holders
+        institutional_holders = company.institutional_holders
+        mutualfund_holders = company.mutualfund_holders
+        insider_transactions = company.insider_transactions
+        insider_purchases = company.insider_purchases
+        insider_roster = company.insider_roster
 
         # Sustainability data
         sustainability = company.sustainability
