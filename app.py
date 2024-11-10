@@ -203,7 +203,7 @@ def fetch_company_data(ticker):
             'ROE': roe,
             'Net Profit Margin': net_profit_margin,
             'Dividend Yield': dividend_yield,
-            'Investment Status': investment_status
+            'Status': investment_status
         }
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
