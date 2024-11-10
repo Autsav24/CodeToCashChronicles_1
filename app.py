@@ -1,30 +1,10 @@
 import streamlit as st
 import yfinance as yf
-
-# Function to convert large numbers to more understandable units
-def format_money(value):
-    if value is None:
-        return "N/A"
-    if isinstance(value, str):
-        return value  # In case the value is already a string, return as is
-    
-    if value >= 1_00_00_000:
-        # Convert to crores (for India)
-        return f"₹ {value / 1_00_00_000:.2f} Cr"
-    elif value >= 10_00_000:
-        # Convert to lakhs
-        return f"₹ {value / 1_00_000:.2f} L"
-    elif value >= 1_000_000:
-        # Convert to millions
-        return f"$ {value / 1_000_000:.2f} M"
-    elif value >= 1_000_000_000:
-        # Convert to billions (e.g., Market Cap)
-        return f"$ {value / 1_000_000_000:.2f} B"
-    else:
-        return f"₹ {value:.2f}"
+import pandas as pd
 
 st.set_page_config(page_title="Stock Fundamental and Financial Data", layout="wide")
 
+# Function to fetch the data
 @st.cache_data(ttl=600)  # Cache the data for 10 minutes
 def fetch_company_data(ticker):
     try:
@@ -74,7 +54,6 @@ def fetch_company_data(ticker):
         # Earnings dates
         earnings_dates = company.earnings_dates
 
-        # Return the fetched data
         return {
             'Company Info': info,
             'Actions': actions,
@@ -136,7 +115,7 @@ if st.button("Fetch Data"):
                 st.subheader("Company Overview")
                 st.write(f"**Company Name:** {data['Company Info'].get('longName', 'N/A')}")
                 st.write(f"**Description:** {data['Company Info'].get('longBusinessSummary', 'N/A')}")
-                st.write(f"**Market Cap:** {format_money(data['Company Info'].get('marketCap', 'N/A'))}")
+                st.write(f"**Market Cap:** {data['Company Info'].get('marketCap', 'N/A')}")
                 st.write(f"**Sector:** {data['Company Info'].get('sector', 'N/A')}")
                 st.write(f"**Industry:** {data['Company Info'].get('industry', 'N/A')}")
 
@@ -214,6 +193,7 @@ if st.button("Fetch Data"):
                 st.write(data['Analyst Data']['EPS Revisions'])
                 st.write("**Growth Estimates:**")
                 st.write(data['Analyst Data']['Growth Estimates'])
+
         else:
             st.error("Failed to fetch data. Please try again.")
     else:
