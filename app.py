@@ -209,7 +209,7 @@ def fetch_company_data(ticker):
 st.title('**Investment Analysis Tool**')
 
 st.sidebar.title("Options")
-ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="AAPL").upper()
+ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").upper()
 investor_preference = st.sidebar.selectbox("Select Investor Preference", ["balanced", "growth", "value", "dividend"])
 
 if ticker_input:
