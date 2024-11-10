@@ -6,9 +6,8 @@ def fetch_company_data(ticker):
     try:
         company = yf.Ticker(ticker)
         info = company.info
-        balance_sheet = company.balance_sheet
-        income_statement = company.income_statement
-        cash_flow = company.cashflow
+        balance_sheet = company.quarterly_balance_sheet
+        cash_flow = company.quarterly_cashflow
         calendar = company.calendar
         sec_filings = company.sec_filings
 
@@ -49,12 +48,8 @@ def fetch_company_data(ticker):
             'Shareholder Equity': shareholder_equity,
             'Calendar': calendar,
             'SEC Filings': sec_filings,
-            'Income Statement': income_statement,
-            'Quarterly Income Statement': company.quarterly_income_stmt,
-            'Balance Sheet': balance_sheet,
-            'Quarterly Balance Sheet': company.quarterly_balance_sheet,
-            'Cash Flow': cash_flow,
-            'Quarterly Cash Flow': company.quarterly_cashflow
+            'Quarterly Balance Sheet': balance_sheet,
+            'Quarterly Cash Flow': cash_flow
         }
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
@@ -83,49 +78,14 @@ def display_metric_explanation(metric_name):
     }
     return explanations.get(metric_name, "No explanation available.")
 
-# Fetching major holders data
-def fetch_major_holders(ticker):
-    try:
-        company = yf.Ticker(ticker)
-        major_holders = company.major_holders
-        institutional_holders = company.institutional_holders
-
-        return {
-            'Major Holders': major_holders,
-            'Institutional Holders': institutional_holders
-        }
-    except Exception as e:
-        st.error(f"Error fetching holders data for {ticker}: {e}")
-        return None
-
-# Display Major Holders Information
-def display_major_holders(holders_data):
-    st.subheader("**Major Holders Information**")
-    
-    if holders_data:
-        if holders_data['Major Holders'] is not None:
-            st.write("**Major Holders:**")
-            st.write(holders_data['Major Holders'])
-        else:
-            st.write("**Major Holders:** Data not available")
-        
-        if holders_data['Institutional Holders'] is not None:
-            st.write("**Institutional Holders:**")
-            st.write(holders_data['Institutional Holders'])
-        else:
-            st.write("**Institutional Holders:** Data not available")
-    else:
-        st.write("No data available for holders.")
-
 # Streamlit UI setup
 st.title('**Fundamental Analysis Tool**')
 
 st.sidebar.title("Options")
-ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="MSFT").upper()
+ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").upper()
 
 if ticker_input:
     company_data = fetch_company_data(ticker_input)
-    holders_data = fetch_major_holders(ticker_input)
 
     if company_data:
         # Company Overview Section
@@ -177,26 +137,17 @@ if ticker_input:
         st.markdown(shareholder_equity_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Shareholder Equity"))
 
-        # Major Holders Information Section
-        display_major_holders(holders_data)
-
-        # Additional Financial Data (Income Statement, Cash Flow, etc.)
+        # Financial Statements Section
         st.subheader("**Financial Statements**")
-        
-        st.write("**Income Statement**:")
-        st.write(company_data['Income Statement'])
-        
-        st.write("**Quarterly Income Statement**:")
-        st.write(company_data['Quarterly Income Statement'])
-        
-        st.write("**Balance Sheet**:")
-        st.write(company_data['Balance Sheet'])
         
         st.write("**Quarterly Balance Sheet**:")
         st.write(company_data['Quarterly Balance Sheet'])
         
-        st.write("**Cash Flow Statement**:")
-        st.write(company_data['Cash Flow'])
-        
         st.write("**Quarterly Cash Flow Statement**:")
         st.write(company_data['Quarterly Cash Flow'])
+
+        st.write("**Calendar Data**:")
+        st.write(company_data['Calendar'])
+
+        st.write("**SEC Filings**:")
+        st.write(company_data['SEC Filings'])
