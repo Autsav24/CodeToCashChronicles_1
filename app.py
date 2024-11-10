@@ -13,6 +13,7 @@ def get_balance_sheet_value(balance_sheet, possible_labels):
             return balance_sheet.loc[label].iloc[0]  # Use iloc[0] for positional access
     return None  # Return None if no label matches
 
+# Function to calculate whether to invest based on various financial metrics
 def should_invest(
     current_ratio=None, 
     debt_to_equity=None, 
