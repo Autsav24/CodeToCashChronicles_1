@@ -89,23 +89,40 @@ if ticker_input:
 
         # Fundamentals Section
         st.subheader("**Fundamentals**")
-        st.write(f"**EPS**: ₹{company_data['EPS']:.2f}")
+        if company_data['EPS'] is not None:
+            st.write(f"**EPS**: ₹{company_data['EPS']:.2f}")
+        else:
+            st.write(f"**EPS**: Data not available")
         st.write(display_metric_explanation("EPS"))
         
-        st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}")
+        if company_data['P/E Ratio'] is not None:
+            st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}")
+        else:
+            st.write(f"**P/E Ratio**: Data not available")
         st.write(display_metric_explanation("P/E Ratio"))
         
-        st.write(f"**ROE**: {company_data['ROE']*100:.2f}%")
+        if company_data['ROE'] is not None:
+            st.write(f"**ROE**: {company_data['ROE']*100:.2f}%")
+        else:
+            st.write(f"**ROE**: Data not available")
         st.write(display_metric_explanation("ROE"))
         
-        st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%")
+        if company_data['Net Profit Margin'] is not None:
+            st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%")
+        else:
+            st.write(f"**Net Profit Margin**: Data not available")
         st.write(display_metric_explanation("Net Profit Margin"))
         
-        st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%")
+        if company_data['Dividend Yield'] is not None:
+            st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%")
+        else:
+            st.write(f"**Dividend Yield**: Data not available")
         st.write(display_metric_explanation("Dividend Yield"))
 
         # Financials Section
         st.subheader("**Financials**")
+        
+        # Display Financial Metrics with fallback
         asset_display = display_metric_value("Total Assets", company_data.get('Total Assets'))
         st.markdown(asset_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Assets"))
