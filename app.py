@@ -24,7 +24,7 @@ def fetch_company_data(ticker):
         balance_sheet = company.quarterly_balance_sheet
         cash_flow = company.quarterly_cashflow
         calendar = company.calendar
-        sec_filings = company.sec_filings
+        # sec_filings = company.sec_filings
 
         # Financial Metrics
         total_assets = balance_sheet.loc['Total Assets'][0] if 'Total Assets' in balance_sheet.index else None
@@ -88,9 +88,9 @@ def format_in_indian_style(number):
 
 
 # Function to display a metric with fallback if the data is None
-def display_metric_value(metric_name, value):
-    formatted_value = format_in_indian_style(value)
-    return f"<h4>{metric_name}: {formatted_value}</h4>"
+# def display_metric_value(metric_name, value):
+#     formatted_value = format_in_indian_style(value)
+#     return f"<h4>{metric_name}: {formatted_value}</h4>"
         
 # Metric Explanations
 def display_metric_explanation(metric_name):
@@ -144,7 +144,8 @@ if ticker_input:
 
         # Financials Section
         st.subheader("**Financials**")
-        asset_display = display_metric_value("Total Assets", format_in_indian_style(company_data['Total Assets']))
+        # asset_display = display_metric_value("Total Assets", format_in_indian_style(company_data['Total Assets']))
+        asset_display = f"**Total Assets**: {format_in_indian_style(company_data['Assets Cap'])}"
         st.markdown(asset_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Assets"))
 
