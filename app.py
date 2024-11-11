@@ -75,7 +75,18 @@ def display_metric_value(metric_name, value):
     if value is not None:
         return f"<h4>{metric_name}: ₹{value/1e7:.2f} Crores</h4>"  # Convert to Crores
     return f"<h4>{metric_name}: Data not available</h4>"
-
+    
+def format_in_indian_style(number):
+    """Formats numbers into Indian numbering style (Lakhs, Crores)."""
+    if number is None:
+        return "Data not available"
+    elif number >= 1e7:
+        return f"₹{number / 1e7:.2f} Crores"
+    elif number >= 1e5:
+        return f"₹{number / 1e5:.2f} Lakhs"
+    else:
+        return f"₹{number:.2f}"
+        
 # Metric Explanations
 def display_metric_explanation(metric_name):
     explanations = {
