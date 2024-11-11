@@ -29,10 +29,10 @@ def fetch_company_data(ticker):
         # Financial Metrics
         total_assets = balance_sheet.loc['Total Assets'][0] if 'Total Assets' in balance_sheet.index else None
         total_liabilities = balance_sheet.loc['Total Liabilities Net Minority Interest'][0] if 'Total Liabilities Net Minority Interest' in balance_sheet.index else None
-        current_assets = balance_sheet.loc['Total Current Assets'][0] if 'Total Current Assets' in balance_sheet.index else None
-        current_liabilities = balance_sheet.loc['Total Current Liabilities'][0] if 'Total Current Liabilities' in balance_sheet.index else None
+        #current_assets = balance_sheet.loc['Total Current Assets'][0] if 'Total Current Assets' in balance_sheet.index else None
+        #current_liabilities = balance_sheet.loc['Total Current Liabilities'][0] if 'Total Current Liabilities' in balance_sheet.index else None
         long_term_debt = balance_sheet.loc['Long Term Debt'][0] if 'Long Term Debt' in balance_sheet.index else None
-        shareholder_equity = balance_sheet.loc['Total Stockholder Equity'][0] if 'Total Stockholder Equity' in balance_sheet.index else None
+        #shareholder_equity = balance_sheet.loc['Total Stockholder Equity'][0] if 'Total Stockholder Equity' in balance_sheet.index else None
 
         # Key Data
         eps = info.get('trailingEps', None)
@@ -136,21 +136,21 @@ if ticker_input:
         st.markdown(liabilities_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Liabilities"))
 
-        current_assets_display = display_metric_value("Current Assets", company_data.get('Current Assets'))
-        st.markdown(current_assets_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Current Assets"))
+        # current_assets_display = display_metric_value("Current Assets", company_data.get('Current Assets'))
+        # st.markdown(current_assets_display, unsafe_allow_html=True)
+        # st.write(display_metric_explanation("Current Assets"))
 
-        current_liabilities_display = display_metric_value("Current Liabilities", company_data.get('Current Liabilities'))
-        st.markdown(current_liabilities_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Current Liabilities"))
+        # current_liabilities_display = display_metric_value("Current Liabilities", company_data.get('Current Liabilities'))
+        # st.markdown(current_liabilities_display, unsafe_allow_html=True)
+        # st.write(display_metric_explanation("Current Liabilities"))
 
         long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
         st.markdown(long_term_debt_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Long Term Debt"))
 
-        shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
-        st.markdown(shareholder_equity_display, unsafe_allow_html=True)
-        st.write(display_metric_explanation("Shareholder Equity"))
+        # shareholder_equity_display = display_metric_value("Shareholder Equity", company_data.get('Shareholder Equity'))
+        # st.markdown(shareholder_equity_display, unsafe_allow_html=True)
+        # st.write(display_metric_explanation("Shareholder Equity"))
 
         # Financial Statements Section
         st.subheader("**Financial Statements**")
@@ -164,5 +164,5 @@ if ticker_input:
         st.write("**Calendar Data**:")
         st.write(company_data['Calendar'])
 
-        st.write("**SEC Filings**:")
-        st.write(company_data['SEC Filings'])
+        # st.write("**SEC Filings**:")
+        # st.write(company_data['SEC Filings'])
