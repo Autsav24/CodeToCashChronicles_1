@@ -142,7 +142,7 @@ if ticker_input:
 
         # Financials Section
         st.subheader("**Financials**")
-        asset_display = display_metric_value("Total Assets", company_data.get('Total Assets'))
+        asset_display = display_metric_value("Total Assets", {format_in_indian_style(company_data['Total Assets'])})
         st.markdown(asset_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Assets"))
 
