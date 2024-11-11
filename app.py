@@ -145,11 +145,12 @@ if ticker_input:
         # Financials Section
         st.subheader("**Financials**")
         # asset_display = display_metric_value("Total Assets", format_in_indian_style(company_data['Total Assets']))
-        asset_display = f"**Total Assets**: {format_in_indian_style(company_data['Assets Cap'])}"
+        asset_display = f"**Total Assets**: {format_in_indian_style(company_data['Total Assets'])}"
         st.markdown(asset_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Assets"))
 
-        liabilities_display = display_metric_value("Total Liabilities", company_data.get('Total Liabilities'))
+        # liabilities_display = display_metric_value("Total Liabilities", company_data.get('Total Liabilities'))
+        liabilities_display = f"**Total Liabilities**: {format_in_indian_style(company_data['Total Liabilities'])}"
         st.markdown(liabilities_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Total Liabilities"))
 
@@ -161,7 +162,8 @@ if ticker_input:
         # st.markdown(current_liabilities_display, unsafe_allow_html=True)
         # st.write(display_metric_explanation("Current Liabilities"))
 
-        long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
+        # long_term_debt_display = display_metric_value("Long Term Debt", company_data.get('Long Term Debt'))
+        long_term_debt_display = f"**Long Term Debt**: {format_in_indian_style(company_data['Long Term Debt'])}"
         st.markdown(long_term_debt_display, unsafe_allow_html=True)
         st.write(display_metric_explanation("Long Term Debt"))
 
