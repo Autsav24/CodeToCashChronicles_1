@@ -73,21 +73,19 @@ def fetch_company_data(ticker):
 # Function to display a metric with fallback if the data is None
 def display_metric_value(metric_name, value):
     if value is not None:
-        return f"<h4>{metric_name}: ₹{value/1e7:.2f} Crores</h4>"  # Convert to Crores
+        # Check if the value is already a formatted string
+        if isinstance(value, str):
+            return f"<h4>{metric_name}: {value}</h4>"
+        else:
+            # Format number for Indian style and add "Crores" label
+            return f"<h4>{metric_name}: ₹{format_in_indian_style(value)} Crores</h4>"
     return f"<h4>{metric_name}: Data not available</h4>"
     
 def format_in_indian_style(number):
-    """Formats numbers into Indian numbering style (Lakhs, Crores, Thousands of Crores)."""
-    if number is None:
-        return "Data not available"
-    elif number >= 1e12:  # Thousands of crores
-        return f"₹{number / 1e12:.2f} Thousand Crores"
-    elif number >= 1e7:  # Crores
-        return f"₹{number / 1e7:.2f} Crores"
-    elif number >= 1e5:  # Lakhs
-        return f"₹{number / 1e5:.2f} Lakhs"
-    else:
-        return f"₹{number:.2f}"
+    # Convert to crore by dividing by 10 million
+    crore_value = number / 1e7
+    # Format for Indian numbering system (e.g., 1,23,456.78)
+    return f"{crore_value:,.2f}"
 
         
 # Metric Explanations
