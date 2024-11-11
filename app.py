@@ -107,7 +107,7 @@ if ticker_input:
         st.subheader(f"Company Overview: {company_data['Company']}")
         st.write(f"**Sector**: {company_data['Sector']}")
         st.write(f"**Industry**: {company_data['Industry']}")
-        st.write(f"**Market Cap**: ₹{company_data['Market Cap']/1e7:.2f} Crores")
+        st.write(f"**Market Cap**: {format_in_indian_style(company_data['Market Cap'])}")
 
         # Fundamentals Section
         st.subheader("**Fundamentals**")
