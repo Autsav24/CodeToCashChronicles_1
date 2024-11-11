@@ -57,12 +57,12 @@ def fetch_company_data(ticker):
             'Dividend Yield': dividend_yield,
             'Total Assets': total_assets,
             'Total Liabilities': total_liabilities,
-            'Current Assets': current_assets,
-            'Current Liabilities': current_liabilities,
+            # 'Current Assets': current_assets,
+            # 'Current Liabilities': current_liabilities,
             'Long Term Debt': long_term_debt,
-            'Shareholder Equity': shareholder_equity,
+            # 'Shareholder Equity': shareholder_equity,
             'Calendar': calendar,
-            'SEC Filings': sec_filings,
+            # 'SEC Filings': sec_filings,
             'Quarterly Balance Sheet': balance_sheet,
             'Quarterly Cash Flow': cash_flow
         }
