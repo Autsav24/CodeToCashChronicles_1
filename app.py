@@ -37,7 +37,7 @@ def fetch_company_data(ticker):
 
         # Key Data
         eps = info.get('trailingEps', None)
-        pe_ratio = info.get('forwardPE', None)
+        pe_ratio = info.get('trailingPE', None)
         roe = info.get('returnOnEquity', None)
         net_profit_margin = info.get('profitMargins', None)
         dividend_yield = info.get('dividendYield', None)
