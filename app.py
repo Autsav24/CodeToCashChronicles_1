@@ -21,6 +21,7 @@ def fetch_company_data(ticker):
     try:
         company = yf.Ticker(ticker)
         info = company.info
+        
         balance_sheet = company.quarterly_balance_sheet
         cash_flow = company.quarterly_cashflow
         calendar = company.calendar
@@ -42,11 +43,13 @@ def fetch_company_data(ticker):
         dividend_yield = info.get('dividendYield', None)
         market_cap = info.get('marketCap', None)
         sector = info.get('sector', None)
+        business_summary = info.get('longBusinessSummary', 'No business summary available')
         industry = info.get('industry', None)
         company_name = info.get('longName', ticker)
 
         return {
             'Company': company_name,
+            'Business Summary': business_summary,
             'Sector': sector,
             'Industry': industry,
             'Market Cap': market_cap,
@@ -121,6 +124,7 @@ if ticker_input:
     if company_data:
         # Company Overview Section
         st.subheader(f"Company Overview: {company_data['Company']}")
+        st.write(f"**Business Summary**: {company_data['Business Summary']}")
         st.write(f"**Sector**: {company_data['Sector']}")
         st.write(f"**Industry**: {company_data['Industry']}")
         st.write(f"**Market Cap**: {format_in_indian_style(company_data['Market Cap'])}")
