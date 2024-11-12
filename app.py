@@ -1,3 +1,75 @@
+import streamlit as st
+import yfinance as yf
+from requests import Session
+from requests_cache import CacheMixin, SQLiteCache
+from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
+from pyrate_limiter import Duration, RequestRate, Limiter
+
+# Custom session class to manage caching and rate limiting for API calls
+class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
+    pass
+
+# Initialize the session with rate limiting and caching
+session = CachedLimiterSession(
+    limiter=Limiter(RequestRate(2, Duration.SECOND * 5)),  # Max 2 requests per 5 seconds
+    bucket_class=MemoryQueueBucket,
+    backend=SQLiteCache("yfinance.cache"),
+)
+
+# Function to fetch financial data and calculate key metrics
+def fetch_company_data(ticker):
+    try:
+        company = yf.Ticker(ticker)
+        info = company.info
+
+        # Ensure info data is valid
+        if not info:
+            st.warning(f"No data returned for {ticker}.")
+            return None
+
+        balance_sheet = company.quarterly_balance_sheet
+        cash_flow = company.quarterly_cashflow
+        calendar = company.calendar
+
+        # Financial Metrics
+        total_assets = balance_sheet.loc['Total Assets'][0] if 'Total Assets' in balance_sheet.index else None
+        total_liabilities = balance_sheet.loc['Total Liabilities Net Minority Interest'][0] if 'Total Liabilities Net Minority Interest' in balance_sheet.index else None
+        long_term_debt = balance_sheet.loc['Long Term Debt'][0] if 'Long Term Debt' in balance_sheet.index else None
+
+        # Key Data
+        eps = info.get('trailingEps', None)
+        pe_ratio = info.get('trailingPE', None)
+        roe = info.get('returnOnEquity', None)
+        net_profit_margin = info.get('profitMargins', None)
+        dividend_yield = info.get('dividendYield', None)
+        market_cap = info.get('marketCap', None)
+        sector = info.get('sector', None)
+        business_summary = info.get('longBusinessSummary', 'No business summary available')
+        industry = info.get('industry', None)
+        company_name = info.get('longName', ticker)
+
+        return {
+            'Company': company_name,
+            'Business Summary': business_summary,
+            'Sector': sector,
+            'Industry': industry,
+            'Market Cap': market_cap,
+            'EPS': eps,
+            'P/E Ratio': pe_ratio,
+            'ROE': roe,
+            'Net Profit Margin': net_profit_margin,
+            'Dividend Yield': dividend_yield,
+            'Total Assets': total_assets,
+            'Total Liabilities': total_liabilities,
+            'Long Term Debt': long_term_debt,
+            'Calendar': calendar,
+            'Quarterly Balance Sheet': balance_sheet,
+            'Quarterly Cash Flow': cash_flow
+        }
+    except Exception as e:
+        st.error(f"Error fetching data for {ticker}: {e}")
+        return None
+
 # Function to format numbers in Indian numbering style (Lakhs, Crores, etc.)
 def format_in_indian_style(number):
     """Formats numbers into Indian numbering style."""
