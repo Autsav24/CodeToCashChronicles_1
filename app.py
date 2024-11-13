@@ -94,6 +94,35 @@ def display_metric_explanation(metric_name):
     return explanations.get(metric_name, "No explanation available.")
 
 
+# Custom CSS for Background
+st.markdown(
+    """
+    <style>
+    /* Full-screen background */
+    .stApp {
+        background-image: url('blob:https://web.telegram.org/6e053a8d-fdf0-4e1b-acba-1367d049431b');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    /* Semi-transparent container for content */
+    .main {
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 2rem;
+        border-radius: 10px;
+    }
+
+    /* Card styling */
+    .stTabs {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
+
 # Streamlit UI setup
 st.title('**Fundamental Analysis Tool**')
 st.sidebar.title("Options")
@@ -103,7 +132,6 @@ if ticker_input:
     company_data = fetch_company_data(ticker_input)
 
     if company_data:
-        # Company Overview Section
         with st.container():
             st.subheader(f"Company Overview: {company_data['Company']}")
             st.write(f"**Business Summary**: {company_data['Business Summary']}")
