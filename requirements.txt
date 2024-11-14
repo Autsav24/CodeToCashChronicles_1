@@ -5,3 +5,5 @@ matplotlib
 requests-cache
 requests-ratelimiter
 pyrate-limiter
+pyautogui
+io
