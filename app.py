@@ -4,8 +4,7 @@ from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
 from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
 from pyrate_limiter import Duration, RequestRate, Limiter
-import pyautogui
-from io import BytesIO
+
 
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
@@ -161,13 +160,3 @@ if ticker_input:
                 st.write("**Calendar Data**:")
                 st.write(company_data['Calendar'])
 
-# Screenshot Tab
-with screenshot_tab:
-    if st.button("Take Screenshot"):
-        take_screenshot()
-        
-    if st.session_state["screenshots"]:
-        st.header("Saved Screenshots")
-        for i, screenshot in enumerate(st.session_state["screenshots"]):
-            st.image(screenshot, caption=f"Screenshot {i+1}")
-            st.download_button(f"Download Screenshot {i+1}", screenshot, file_name=f"screenshot_{i+1}.png", mime="image/png")
