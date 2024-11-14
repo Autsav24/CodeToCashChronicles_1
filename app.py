@@ -100,7 +100,7 @@ st.markdown(
     <style>
     /* Full-screen background */
     .stApp {
-        background-image: url('blob:https://web.telegram.org/6e053a8d-fdf0-4e1b-acba-1367d049431b');
+        # background-image: url('blob:https://web.telegram.org/6e053a8d-fdf0-4e1b-acba-1367d049431b');
         background-size: cover;
         background-repeat: no-repeat;
         background-attachment: fixed;
