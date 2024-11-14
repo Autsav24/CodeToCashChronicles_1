@@ -4,7 +4,8 @@ from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
 from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
 from pyrate_limiter import Duration, RequestRate, Limiter
-
+import pyautogui
+from io import BytesIO
 
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
@@ -15,13 +16,22 @@ session = CachedLimiterSession(
     backend=SQLiteCache("yfinance.cache"),
 )
 
+# Initialize session state for screenshots if it doesn't exist
+if "screenshots" not in st.session_state:
+    st.session_state["screenshots"] = []
 
-# Function to fetch financial data and calculate key metrics
+def take_screenshot():
+    screenshot = pyautogui.screenshot()
+    buffer = BytesIO()
+    screenshot.save(buffer, format="PNG")
+    buffer.seek(0)
+    st.session_state["screenshots"].append(buffer)
+    st.success("Screenshot taken and saved!")
+
 def fetch_company_data(ticker):
     try:
         company = yf.Ticker(ticker)
         info = company.info
-
         balance_sheet = company.quarterly_balance_sheet
         cash_flow = company.quarterly_cashflow
         calendar = company.calendar
@@ -65,20 +75,18 @@ def fetch_company_data(ticker):
         st.error(f"Error fetching data for {ticker}: {e}")
         return None
 
-
 def format_in_indian_style(number):
     """Formats numbers into Indian numbering style (Lakhs, Crores, Thousands of Crores)."""
     if number is None:
         return "Data not available"
-    elif number >= 1e12:  # Thousands of crores
+    elif number >= 1e12:
         return f"₹{number / 1e12:.2f} Thousand Crores"
-    elif number >= 1e7:  # Crores
+    elif number >= 1e7:
         return f"₹{number / 1e7:.2f} Crores"
-    elif number >= 1e5:  # Lakhs
+    elif number >= 1e5:
         return f"₹{number / 1e5:.2f} Lakhs"
     else:
         return f"₹{number:.2f}"
-
 
 def display_metric_explanation(metric_name):
     explanations = {
@@ -93,90 +101,73 @@ def display_metric_explanation(metric_name):
     }
     return explanations.get(metric_name, "No explanation available.")
 
-
-# Custom CSS for Background
-st.markdown(
-    """
-    <style>
-    /* Full-screen background */
-    .stApp {
-        # background-image: url('blob:https://web.telegram.org/6e053a8d-fdf0-4e1b-acba-1367d049431b');
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }
-
-    /* Semi-transparent container for content */
-    .main {
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 2rem;
-        border-radius: 10px;
-    }
-
-    /* Card styling */
-    .stTabs {
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 10px;
-        padding: 1rem;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
-
 # Streamlit UI setup
 st.title('**Fundamental Analysis Tool**')
 st.sidebar.title("Options")
 ticker_input = st.sidebar.text_input("Enter Stock Ticker", value="RELIANCE.NS").upper()
 
+# Tabs for company analysis and screenshot functionality
+analysis_tab, screenshot_tab = st.tabs(["Company Analysis", "Screenshots"])
+
 if ticker_input:
     company_data = fetch_company_data(ticker_input)
 
     if company_data:
-        with st.container():
+        with analysis_tab:
             st.subheader(f"Company Overview: {company_data['Company']}")
             st.write(f"**Business Summary**: {company_data['Business Summary']}")
             st.write(f"**Sector**: {company_data['Sector']}")
             st.write(f"**Industry**: {company_data['Industry']}")
             st.write(f"**Market Cap**: {format_in_indian_style(company_data['Market Cap'])}")
 
-        # Tabs for different sections
-        tab1, tab2, tab3 = st.tabs(["Fundamentals", "Financials", "Financial Statements"])
+            fundamentals_tab, financials_tab, statements_tab = st.tabs(["Fundamentals", "Financials", "Financial Statements"])
 
-        with tab1:
-            st.subheader("Fundamentals")
-            st.write(f"**EPS**: ₹{company_data['EPS']:.2f}" if company_data['EPS'] else "Data not available")
-            st.write(display_metric_explanation("EPS"))
+            with fundamentals_tab:
+                st.subheader("Fundamentals")
+                st.write(f"**EPS**: ₹{company_data['EPS']:.2f}" if company_data['EPS'] else "Data not available")
+                st.write(display_metric_explanation("EPS"))
 
-            st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}" if company_data['P/E Ratio'] else "Data not available")
-            st.write(display_metric_explanation("P/E Ratio"))
+                st.write(f"**P/E Ratio**: {company_data['P/E Ratio']:.2f}" if company_data['P/E Ratio'] else "Data not available")
+                st.write(display_metric_explanation("P/E Ratio"))
 
-            st.write(f"**ROE**: {company_data['ROE']*100:.2f}%" if company_data['ROE'] else "Data not available")
-            st.write(display_metric_explanation("ROE"))
+                st.write(f"**ROE**: {company_data['ROE']*100:.2f}%" if company_data['ROE'] else "Data not available")
+                st.write(display_metric_explanation("ROE"))
 
-            st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%" if company_data['Net Profit Margin'] else "Data not available")
-            st.write(display_metric_explanation("Net Profit Margin"))
+                st.write(f"**Net Profit Margin**: {company_data['Net Profit Margin']*100:.2f}%" if company_data['Net Profit Margin'] else "Data not available")
+                st.write(display_metric_explanation("Net Profit Margin"))
 
-            st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%" if company_data['Dividend Yield'] else "Data not available")
-            st.write(display_metric_explanation("Dividend Yield"))
+                st.write(f"**Dividend Yield**: {company_data['Dividend Yield']*100:.2f}%" if company_data['Dividend Yield'] else "Data not available")
+                st.write(display_metric_explanation("Dividend Yield"))
 
-        with tab2:
-            st.subheader("Financials")
-            st.write(f"**Total Assets**: {format_in_indian_style(company_data['Total Assets'])}")
-            st.write(display_metric_explanation("Total Assets"))
+            with financials_tab:
+                st.subheader("Financials")
+                st.write(f"**Total Assets**: {format_in_indian_style(company_data['Total Assets'])}")
+                st.write(display_metric_explanation("Total Assets"))
 
-            st.write(f"**Total Liabilities**: {format_in_indian_style(company_data['Total Liabilities'])}")
-            st.write(display_metric_explanation("Total Liabilities"))
+                st.write(f"**Total Liabilities**: {format_in_indian_style(company_data['Total Liabilities'])}")
+                st.write(display_metric_explanation("Total Liabilities"))
 
-            st.write(f"**Long Term Debt**: {format_in_indian_style(company_data['Long Term Debt'])}")
-            st.write(display_metric_explanation("Long Term Debt"))
+                st.write(f"**Long Term Debt**: {format_in_indian_style(company_data['Long Term Debt'])}")
+                st.write(display_metric_explanation("Long Term Debt"))
 
-        with tab3:
-            st.subheader("Financial Statements")
-            st.write("**Quarterly Balance Sheet**:")
-            st.write(company_data['Quarterly Balance Sheet'])
+            with statements_tab:
+                st.subheader("Financial Statements")
+                st.write("**Quarterly Balance Sheet**:")
+                st.write(company_data['Quarterly Balance Sheet'])
 
-            st.write("**Quarterly Cash Flow Statement**:")
-            st.write(company_data['Quarterly Cash Flow'])
+                st.write("**Quarterly Cash Flow Statement**:")
+                st.write(company_data['Quarterly Cash Flow'])
 
-            st.write("**Calendar Data**:")
-            st.write(company_data['Calendar'])
+                st.write("**Calendar Data**:")
+                st.write(company_data['Calendar'])
+
+# Screenshot Tab
+with screenshot_tab:
+    if st.button("Take Screenshot"):
+        take_screenshot()
+        
+    if st.session_state["screenshots"]:
+        st.header("Saved Screenshots")
+        for i, screenshot in enumerate(st.session_state["screenshots"]):
+            st.image(screenshot, caption=f"Screenshot {i+1}")
+            st.download_button(f"Download Screenshot {i+1}", screenshot, file_name=f"screenshot_{i+1}.png", mime="image/png")
