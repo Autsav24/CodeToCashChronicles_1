@@ -436,27 +436,166 @@ def trend_arrow(df, row_key):
 
 
 # ─── Chart Helpers ───────────────────────────────────────────────────────────────
-def price_chart(history_df):
-    if history_df is None or history_df.empty: return
+def _find_sr_levels(close_series, window=10, n=3):
+    """
+    Find up to n support and n resistance levels from local minima/maxima
+    in the close price series using a rolling window approach.
+    Returns (support_levels, resistance_levels) as sorted lists.
+    """
+    highs, lows = [], []
+    prices = close_series.values
+    for i in range(window, len(prices) - window):
+        local_max = prices[i - window : i + window + 1].max()
+        local_min = prices[i - window : i + window + 1].min()
+        if prices[i] == local_max:
+            highs.append(float(prices[i]))
+        if prices[i] == local_min:
+            lows.append(float(prices[i]))
+
+    # Cluster nearby levels (within 1.5% of each other) and keep strongest
+    def cluster(levels, pct=0.015):
+        if not levels: return []
+        levels = sorted(set(levels))
+        clusters = []
+        grp = [levels[0]]
+        for lv in levels[1:]:
+            if (lv - grp[-1]) / grp[-1] < pct:
+                grp.append(lv)
+            else:
+                clusters.append(sum(grp) / len(grp))
+                grp = [lv]
+        clusters.append(sum(grp) / len(grp))
+        return clusters
+
+    current = float(close_series.iloc[-1])
+    support    = sorted([l for l in cluster(lows)  if l < current], reverse=True)[:n]
+    resistance = sorted([h for h in cluster(highs) if h > current])[:n]
+    return support, resistance
+
+
+def price_chart(history_df, w52_high=None, w52_low=None, current_price=None):
+    if history_df is None or history_df.empty:
+        return
+
+    close = history_df["Close"]
+    support_levels, resistance_levels = _find_sr_levels(close)
+
     fig = go.Figure()
+
+    # ── 52W shaded zone ──────────────────────────────────────────────────────────
+    if w52_low and w52_high:
+        fig.add_hrect(
+            y0=w52_low, y1=w52_high,
+            fillcolor="rgba(88,166,255,0.04)",
+            line_width=0,
+            layer="below",
+        )
+
+    # ── Price line ───────────────────────────────────────────────────────────────
     fig.add_trace(go.Scatter(
-        x=history_df.index, y=history_df["Close"],
+        x=close.index, y=close,
         mode="lines",
         line=dict(color="#58a6ff", width=2),
-        fill="tozeroy", fillcolor="rgba(88,166,255,0.07)",
-        name="Close Price",
+        fill="tozeroy", fillcolor="rgba(88,166,255,0.06)",
+        name="Close price",
         hovertemplate="%{x|%b %d, %Y}<br>Price: %{y:.2f}<extra></extra>",
     ))
+
+    # ── 52W High — resistance ceiling ────────────────────────────────────────────
+    if w52_high:
+        fig.add_hline(
+            y=w52_high,
+            line=dict(color="#f85149", width=1.2, dash="dot"),
+            annotation_text=f"52W High  {w52_high:.1f}",
+            annotation_position="top right",
+            annotation_font=dict(color="#f85149", size=11),
+        )
+
+    # ── 52W Low — support floor ───────────────────────────────────────────────────
+    if w52_low:
+        fig.add_hline(
+            y=w52_low,
+            line=dict(color="#3fb950", width=1.2, dash="dot"),
+            annotation_text=f"52W Low  {w52_low:.1f}",
+            annotation_position="bottom right",
+            annotation_font=dict(color="#3fb950", size=11),
+        )
+
+    # ── Current price ─────────────────────────────────────────────────────────────
+    if current_price:
+        fig.add_hline(
+            y=current_price,
+            line=dict(color="#e6edf3", width=1, dash="dash"),
+            annotation_text=f"CMP  {current_price:.1f}",
+            annotation_position="top left",
+            annotation_font=dict(color="#e6edf3", size=11),
+        )
+
+    # ── Dynamic resistance levels (from price action) ─────────────────────────────
+    for i, lv in enumerate(resistance_levels):
+        fig.add_hline(
+            y=lv,
+            line=dict(color="#f85149", width=1, dash="dash"),
+            annotation_text=f"R{i+1}  {lv:.1f}",
+            annotation_position="top right",
+            annotation_font=dict(color="#f85149", size=10),
+            annotation_xanchor="right",
+        )
+
+    # ── Dynamic support levels (from price action) ────────────────────────────────
+    for i, lv in enumerate(support_levels):
+        fig.add_hline(
+            y=lv,
+            line=dict(color="#3fb950", width=1, dash="dash"),
+            annotation_text=f"S{i+1}  {lv:.1f}",
+            annotation_position="bottom right",
+            annotation_font=dict(color="#3fb950", size=10),
+            annotation_xanchor="right",
+        )
+
     fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="DM Sans", color="#8b949e"),
-        margin=dict(l=0, r=0, t=10, b=0),
+        margin=dict(l=0, r=80, t=20, b=0),
         xaxis=dict(showgrid=False, color="#8b949e", showline=False),
         yaxis=dict(showgrid=True, gridcolor="#21262d", color="#8b949e", showline=False),
-        legend=dict(bgcolor="rgba(0,0,0,0)"),
-        height=280, hovermode="x unified",
+        legend=dict(
+            bgcolor="rgba(22,27,34,0.8)",
+            bordercolor="#30363d",
+            borderwidth=1,
+            font=dict(size=11),
+        ),
+        height=340,
+        hovermode="x unified",
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    # ── Level legend below chart ──────────────────────────────────────────────────
+    lc1, lc2, lc3 = st.columns(3)
+    with lc1:
+        res_txt = " · ".join([f"R{i+1}: {lv:.1f}" for i, lv in enumerate(resistance_levels)]) or "None found"
+        st.markdown(
+            f'<div style="font-size:12px;color:#f85149;padding:8px 0">'
+            f'<b>Resistance zones</b><br><span style="color:#8b949e">{res_txt}</span></div>',
+            unsafe_allow_html=True,
+        )
+    with lc2:
+        sup_txt = " · ".join([f"S{i+1}: {lv:.1f}" for i, lv in enumerate(support_levels)]) or "None found"
+        st.markdown(
+            f'<div style="font-size:12px;color:#3fb950;padding:8px 0">'
+            f'<b>Support zones</b><br><span style="color:#8b949e">{sup_txt}</span></div>',
+            unsafe_allow_html=True,
+        )
+    with lc3:
+        if w52_high and w52_low and current_price:
+            pct = (current_price - w52_low) / (w52_high - w52_low) * 100
+            zone = "near 52W high — caution" if pct > 80 else ("near 52W low — watch for reversal" if pct < 20 else "mid-range")
+            st.markdown(
+                f'<div style="font-size:12px;color:#58a6ff;padding:8px 0">'
+                f'<b>Price position</b><br><span style="color:#8b949e">{pct:.0f}% of 52W range · {zone}</span></div>',
+                unsafe_allow_html=True,
+            )
 
 
 def balance_bar_chart(d):
@@ -676,7 +815,7 @@ tab_price, tab_fundamentals, tab_financials, tab_statements, tab_peers = st.tabs
 # ── Tab 1: Price History ─────────────────────────────────────────────────────────
 with tab_price:
     st.markdown('<div class="section-title">1-Year Price History</div>', unsafe_allow_html=True)
-    price_chart(d["history"])
+    price_chart(d["history"], w52_high=d["52w_high"], w52_low=d["52w_low"], current_price=d["current_price"])
 
     if d["history"] is not None and not d["history"].empty:
         h   = d["history"]["Close"]
@@ -784,6 +923,115 @@ with tab_financials:
 # ── Tab 4: Statements ────────────────────────────────────────────────────────────
 with tab_statements:
     st.markdown('<div class="section-title">Quarterly Financial Statements</div>', unsafe_allow_html=True)
+
+    # ── Income Statement snapshot ─────────────────────────────────────────────────
+    inc = d["income_stmt"]
+    if inc is not None and not inc.empty:
+        def _q(df, key):
+            try:
+                if key in df.index:
+                    v = df.loc[key].iloc[0]
+                    return float(v) if pd.notna(v) else None
+            except Exception:
+                pass
+            return None
+
+        revenue   = _q(inc, "Total Revenue")
+        cogs      = _q(inc, "Cost Of Revenue")
+        gross_p   = _q(inc, "Gross Profit")
+        ebit      = _q(inc, "EBIT") or _q(inc, "Operating Income")
+        net_inc   = _q(inc, "Net Income")
+
+        if any(v is not None for v in [revenue, gross_p, ebit, net_inc]):
+            st.markdown('<div class="section-title" style="font-size:17px">Income statement — latest quarter snapshot</div>', unsafe_allow_html=True)
+            ic1, ic2, ic3, ic4 = st.columns(4)
+
+            def _is_card(col, label, val, hint, color_key=None):
+                arrow = ""
+                if inc.shape[1] >= 2 and val is not None:
+                    arrow = trend_arrow(inc, color_key or label)
+                metric_card(label, fmt_large(val, currency), (hint + ("<br>" + arrow if arrow else "")))
+
+            with ic1:
+                _is_card(ic1, "Revenue", revenue, "Total sales this quarter", "Total Revenue")
+            with ic2:
+                gm_pct = f" ({(gross_p/revenue*100):.1f}% margin)" if gross_p and revenue else ""
+                _is_card(ic2, "Gross profit", gross_p, f"Revenue minus COGS{gm_pct}", "Gross Profit")
+            with ic3:
+                em_pct = f" ({(ebit/revenue*100):.1f}% margin)" if ebit and revenue else ""
+                _is_card(ic3, "Operating profit (EBIT)", ebit, f"Core business earnings{em_pct}", "EBIT")
+            with ic4:
+                nm_pct = f" ({(net_inc/revenue*100):.1f}% net margin)" if net_inc and revenue else ""
+                css = "good" if net_inc and net_inc > 0 else "bad"
+                metric_card("Net profit (PAT)", fmt_large(net_inc, currency), f"Bottom line{nm_pct}", css)
+
+            # Revenue waterfall bar
+            if revenue and gross_p and net_inc:
+                fig_wf = go.Figure()
+                labels = ["Revenue", "Gross profit", "EBIT", "Net profit"]
+                values = [revenue, gross_p, ebit if ebit else 0, net_inc]
+                colors = ["#58a6ff", "#3fb950", "#d29922", "#3fb950" if net_inc > 0 else "#f85149"]
+                fig_wf.add_trace(go.Bar(
+                    x=labels, y=values,
+                    marker_color=colors,
+                    hovertemplate="%{x}: %{y:,.0f}<extra></extra>",
+                    text=[fmt_large(v, currency) for v in values],
+                    textposition="outside",
+                    textfont=dict(size=11, color="#8b949e"),
+                ))
+                fig_wf.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(family="DM Sans", color="#8b949e"),
+                    margin=dict(l=0, r=0, t=30, b=0),
+                    xaxis=dict(showgrid=False),
+                    yaxis=dict(showgrid=True, gridcolor="#21262d", showticklabels=False),
+                    height=220, showlegend=False,
+                )
+                st.plotly_chart(fig_wf, use_container_width=True)
+
+    # ── Balance sheet health checks ───────────────────────────────────────────────
+    bs = d["balance_sheet"]
+    if any(d.get(k) for k in ["total_assets", "total_liabilities", "stockholders_equity"]):
+        st.markdown('<div class="section-title" style="font-size:17px;margin-top:20px">Balance sheet — 4 quick health checks</div>', unsafe_allow_html=True)
+        ta  = d.get("total_assets")
+        tl  = d.get("total_liabilities")
+        eq  = d.get("stockholders_equity")
+        ltd = d.get("long_term_debt")
+
+        checks = []
+        if ta and tl:
+            ok = ta > tl
+            checks.append(("Assets > Liabilities?", "Solvent" if ok else "Insolvent", ok,
+                           f"Assets {fmt_large(ta, currency)} vs Liabilities {fmt_large(tl, currency)}"))
+        if ltd and eq and eq != 0:
+            dte = ltd / eq
+            ok  = dte < 1.0
+            checks.append(("Debt-to-equity below 1x?", f"{dte:.2f}x", ok,
+                           "Under 1x = conservative · 1–2x = moderate · Above 2x = high risk"))
+        if eq:
+            eq_arr = trend_arrow(bs, "Stockholders Equity")
+            ok = "▲" in eq_arr if eq_arr else None
+            checks.append(("Equity growing QoQ?",
+                           "Growing ▲" if ok else ("Shrinking ▼" if ok is False else "No data"),
+                           ok,
+                           "Rising = accumulating wealth · Shrinking = losses or heavy payouts"))
+        if bs is not None and "Cash And Cash Equivalents" in bs.index and "Current Debt" in bs.index:
+            try:
+                cash = float(bs.loc["Cash And Cash Equivalents"].iloc[0])
+                std  = float(bs.loc["Current Debt"].iloc[0])
+                ok   = cash > std
+                checks.append(("Cash > Short-term debt?", "Yes" if ok else "No", ok,
+                               f"Cash {fmt_large(cash, currency)} vs Short-term debt {fmt_large(std, currency)}"))
+            except Exception:
+                pass
+
+        cols = st.columns(len(checks)) if checks else []
+        for col, (q, verdict, ok, hint) in zip(cols, checks):
+            css = "good" if ok else ("bad" if ok is False else "")
+            with col:
+                metric_card(q, verdict, hint, css)
+
+    st.divider()
 
     with st.expander("📋  Balance Sheet", expanded=True):
         if d["balance_sheet"] is not None and not d["balance_sheet"].empty:
