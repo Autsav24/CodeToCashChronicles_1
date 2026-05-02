@@ -191,50 +191,99 @@ st.markdown("""
 def fetch_company_data(ticker: str) -> dict | None:
     try:
         company = yf.Ticker(ticker)
-        info = company.info
-        if not info or info.get("trailingPE") is None and info.get("marketCap") is None:
-            st.error(f"No data found for **{ticker}**. Check the ticker symbol and try again.")
+
+        # ── Safely get info dict ──────────────────────────────────────────────
+        # yfinance can raise or return garbage on NSE/BSE tickers; catch it all
+        info = {}
+        try:
+            info = company.info or {}
+        except Exception:
+            pass
+
+        # ── Fallback to fast_info for price/market data if info is empty ─────
+        fast = {}
+        try:
+            fi = company.fast_info
+            fast = {
+                "market_cap":    getattr(fi, "market_cap", None),
+                "52w_high":      getattr(fi, "year_high", None),
+                "52w_low":       getattr(fi, "year_low", None),
+                "current_price": getattr(fi, "last_price", None),
+                "currency":      getattr(fi, "currency", "INR"),
+                "exchange":      getattr(fi, "exchange", ""),
+            }
+        except Exception:
+            pass
+
+        # ── Validate — must have at least a price or market cap ──────────────
+        current_price = info.get("currentPrice") or info.get("regularMarketPrice") or fast.get("current_price")
+        market_cap    = info.get("marketCap") or fast.get("market_cap")
+        if not current_price and not market_cap:
+            st.error(f"No data found for **{ticker}**. Please verify the ticker symbol (e.g. RELIANCE.NS, TCS.NS, AAPL).")
             return None
 
-        balance_sheet = company.quarterly_balance_sheet
-        cash_flow     = company.quarterly_cashflow
-        income_stmt   = company.quarterly_income_stmt
-        calendar      = company.calendar
-        history       = company.history(period="1y")
+        # ── Financial statements ──────────────────────────────────────────────
+        balance_sheet, cash_flow, income_stmt, calendar, history = None, None, None, None, None
+        try:
+            balance_sheet = company.quarterly_balance_sheet
+        except Exception:
+            pass
+        try:
+            cash_flow = company.quarterly_cashflow
+        except Exception:
+            pass
+        try:
+            income_stmt = company.quarterly_income_stmt
+        except Exception:
+            pass
+        try:
+            calendar = company.calendar
+        except Exception:
+            pass
+        try:
+            history = company.history(period="1y")
+        except Exception:
+            pass
 
         def safe_loc(df, key):
-            return df.loc[key][0] if key in df.index and not df.loc[key].empty else None
+            try:
+                if df is not None and key in df.index and not df.loc[key].empty:
+                    val = df.loc[key].iloc[0]
+                    return float(val) if pd.notna(val) else None
+            except Exception:
+                pass
+            return None
 
         return {
-            "company_name":      info.get("longName", ticker),
-            "business_summary":  info.get("longBusinessSummary", "No business summary available."),
-            "sector":            info.get("sector", "N/A"),
-            "industry":          info.get("industry", "N/A"),
-            "market_cap":        info.get("marketCap"),
-            "eps":               info.get("trailingEps"),
-            "pe_ratio":          info.get("trailingPE"),
-            "forward_pe":        info.get("forwardPE"),
-            "pb_ratio":          info.get("priceToBook"),
-            "roe":               info.get("returnOnEquity"),
-            "roa":               info.get("returnOnAssets"),
-            "net_profit_margin": info.get("profitMargins"),
-            "gross_margin":      info.get("grossMargins"),
-            "dividend_yield":    info.get("dividendYield"),
-            "beta":              info.get("beta"),
-            "52w_high":          info.get("fiftyTwoWeekHigh"),
-            "52w_low":           info.get("fiftyTwoWeekLow"),
-            "current_price":     info.get("currentPrice") or info.get("regularMarketPrice"),
-            "total_assets":      safe_loc(balance_sheet, "Total Assets"),
-            "total_liabilities": safe_loc(balance_sheet, "Total Liabilities Net Minority Interest"),
-            "long_term_debt":    safe_loc(balance_sheet, "Long Term Debt"),
+            "company_name":        info.get("longName", ticker),
+            "business_summary":    info.get("longBusinessSummary", "No business summary available."),
+            "sector":              info.get("sector", "N/A"),
+            "industry":            info.get("industry", "N/A"),
+            "market_cap":          market_cap,
+            "eps":                 info.get("trailingEps"),
+            "pe_ratio":            info.get("trailingPE"),
+            "forward_pe":          info.get("forwardPE"),
+            "pb_ratio":            info.get("priceToBook"),
+            "roe":                 info.get("returnOnEquity"),
+            "roa":                 info.get("returnOnAssets"),
+            "net_profit_margin":   info.get("profitMargins"),
+            "gross_margin":        info.get("grossMargins"),
+            "dividend_yield":      info.get("dividendYield"),
+            "beta":                info.get("beta"),
+            "52w_high":            info.get("fiftyTwoWeekHigh") or fast.get("52w_high"),
+            "52w_low":             info.get("fiftyTwoWeekLow")  or fast.get("52w_low"),
+            "current_price":       current_price,
+            "total_assets":        safe_loc(balance_sheet, "Total Assets"),
+            "total_liabilities":   safe_loc(balance_sheet, "Total Liabilities Net Minority Interest"),
+            "long_term_debt":      safe_loc(balance_sheet, "Long Term Debt"),
             "stockholders_equity": safe_loc(balance_sheet, "Stockholders Equity"),
-            "balance_sheet":     balance_sheet,
-            "cash_flow":         cash_flow,
-            "income_stmt":       income_stmt,
-            "calendar":          calendar,
-            "history":           history,
-            "currency":          info.get("currency", "USD"),
-            "exchange":          info.get("exchange", ""),
+            "balance_sheet":       balance_sheet,
+            "cash_flow":           cash_flow,
+            "income_stmt":         income_stmt,
+            "calendar":            calendar,
+            "history":             history,
+            "currency":            info.get("currency") or fast.get("currency", "INR"),
+            "exchange":            info.get("exchange") or fast.get("exchange", ""),
         }
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {e}")
