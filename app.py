@@ -1,13 +1,7 @@
 import streamlit as st
 import yfinance as yf
-from requests import Session
-from requests_cache import CacheMixin, SQLiteCache
-from requests_ratelimiter import LimiterMixin
-from pyrate_limiter import Duration, RequestRate, Limiter
-from io import BytesIO
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 
 # ─── Page Config ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -191,25 +185,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ─── Cached + Rate-Limited Session ──────────────────────────────────────────────
-class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
-    pass
-
-@st.cache_resource
-def get_session():
-    return CachedLimiterSession(
-        limiter=Limiter(RequestRate(2, Duration.SECOND * 5)),
-        backend=SQLiteCache("yfinance.cache"),
-    )
-
-session = get_session()
-
 
 # ─── Data Fetching ───────────────────────────────────────────────────────────────
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_company_data(ticker: str) -> dict | None:
     try:
-        company = yf.Ticker(ticker, session=session)
+        company = yf.Ticker(ticker)
         info = company.info
         if not info or info.get("trailingPE") is None and info.get("marketCap") is None:
             st.error(f"No data found for **{ticker}**. Check the ticker symbol and try again.")
