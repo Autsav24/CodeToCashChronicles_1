@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
-from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
+from requests_ratelimiter import LimiterMixin
 from pyrate_limiter import Duration, RequestRate, Limiter
 from io import BytesIO
 import pandas as pd
@@ -199,7 +199,6 @@ class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
 def get_session():
     return CachedLimiterSession(
         limiter=Limiter(RequestRate(2, Duration.SECOND * 5)),
-        bucket_class=MemoryQueueBucket,
         backend=SQLiteCache("yfinance.cache"),
     )
 
